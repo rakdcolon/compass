@@ -1,98 +1,229 @@
-/* Compass AI Benefits Navigator — Custom Styles */
+/* ============================================================
+   COMPASS DESIGN SYSTEM
+   Warm social-good theme — forest green + ember amber
+   ============================================================ */
 
-/* Smooth scrollbar */
+:root {
+  --forest:        #15803D;
+  --forest-light:  #16A34A;
+  --forest-dark:   #166534;
+  --forest-50:     #F0FDF4;
+  --forest-100:    #DCFCE7;
+
+  --ember:         #EA580C;
+  --ember-50:      #FFF7ED;
+  --ember-100:     #FFEDD5;
+
+  --bg:            #F9F5EE;
+  --surface:       #FFFFFF;
+  --border:        #E5DDD3;
+  --border-light:  #F0EAE0;
+
+  --text-1:        #1C1917;
+  --text-2:        #57534E;
+  --text-3:        #78716C;
+  --text-4:        #A8A29E;
+
+  --shadow-sm:     0 1px 3px rgba(28, 25, 23, 0.07), 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow-md:     0 4px 12px rgba(28, 25, 23, 0.08), 0 2px 6px rgba(28, 25, 23, 0.05);
+  --shadow-lg:     0 10px 30px rgba(28, 25, 23, 0.1), 0 4px 12px rgba(28, 25, 23, 0.06);
+}
+
+/* ---- Scrollbar ---- */
 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #D6D3D1; }
 
-/* Voice button pulse animation */
-@keyframes voice-pulse {
-  0%, 100% { transform: scale(1.1); opacity: 0.6; }
-  50% { transform: scale(1.3); opacity: 0; }
+/* ---- Voice button ring (welcome page) ---- */
+@keyframes voice-ring-pulse {
+  0%, 100% { transform: scale(1.05); opacity: 0.5; }
+  50%       { transform: scale(1.25); opacity: 0; }
 }
-
+.voice-welcome-ring {
+  animation: voice-ring-pulse 2.5s ease-in-out infinite;
+}
 .voice-active .voice-ring {
-  animation: voice-pulse 1.5s ease-in-out infinite;
-  opacity: 0.6;
+  animation: voice-ring-pulse 1.5s ease-in-out infinite;
+  opacity: 0.5;
 }
 
-/* Waveform bars */
+/* ---- Waveform bars ---- */
 @keyframes waveform-bar {
   0%, 100% { height: 20%; }
-  50% { height: 80%; }
+  50%       { height: 80%; }
 }
-
 .waveform-bar {
   display: inline-block;
   width: 3px;
-  background: #38bdf8;
+  background: var(--forest);
   border-radius: 2px;
   animation: waveform-bar 0.8s ease-in-out infinite;
 }
 
-/* Message animations */
+/* ---- Message entrance ---- */
 @keyframes message-in {
   from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
 .message-animate {
   animation: message-in 0.3s ease-out forwards;
 }
 
-/* Program card */
+/* ============================================================
+   PERSONA CARDS (Welcome view)
+   ============================================================ */
+.persona-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  color: var(--text-1);
+  display: flex;
+  flex-direction: column;
+}
+.persona-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--forest);
+}
+.persona-card:active { transform: translateY(-1px); }
+
+/* ============================================================
+   NOVA MODEL ACTIVITY PILLS
+   ============================================================ */
+.model-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #F5F5F4;
+  border: 1px solid #E7E5E4;
+  color: #A8A29E;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+.model-pill:hover {
+  background: #EEEEEC;
+  color: #57534E;
+}
+
+.pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D6D3D1;
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+/* Active pill animations */
+@keyframes pill-glow {
+  0%, 100% { box-shadow: 0 0 0 2px var(--pill-glow, rgba(21,128,61,0.2)); }
+  50%       { box-shadow: 0 0 0 4px var(--pill-glow, rgba(21,128,61,0.1)); }
+}
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.5); }
+}
+
+/* Nova Lite — forest green */
+.model-pill.active {
+  background: var(--forest-50);
+  border-color: var(--forest-100);
+  color: var(--forest-dark);
+  animation: pill-glow 2s ease-in-out infinite;
+  --pill-glow: rgba(21,128,61,0.2);
+}
+.model-pill.active .pill-dot {
+  background: var(--forest);
+  animation: dot-pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 5px var(--forest);
+}
+
+/* Nova Sonic — teal */
+#pill-sonic.active { background: #F0FDFA; border-color: #99F6E4; color: #0F766E; --pill-glow: rgba(15,118,110,0.2); }
+#pill-sonic.active .pill-dot { background: #14B8A6; box-shadow: 0 0 5px #14B8A6; }
+
+/* Nova Embeddings — violet */
+#pill-embed.active { background: #FAF5FF; border-color: #E9D5FF; color: #7E22CE; --pill-glow: rgba(126,34,206,0.2); }
+#pill-embed.active .pill-dot { background: #A855F7; box-shadow: 0 0 5px #A855F7; }
+
+/* Nova Act — ember orange */
+#pill-act.active { background: var(--ember-50); border-color: var(--ember-100); color: #9A3412; --pill-glow: rgba(234,88,12,0.2); }
+#pill-act.active .pill-dot { background: var(--ember); box-shadow: 0 0 5px var(--ember); }
+
+/* ============================================================
+   BENEFITS VALUE BANNER
+   ============================================================ */
+.value-banner {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+  border: 1px solid var(--forest-100);
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes banner-in {
+  from { opacity: 0; transform: scale(0.97) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.value-banner:not(.hidden) {
+  animation: banner-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ============================================================
+   PROGRAM CARDS
+   ============================================================ */
 .program-card {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 12px;
-  transition: border-color 0.2s;
+  padding: 11px 12px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, border-color 0.15s;
 }
+.program-card:hover { box-shadow: var(--shadow-md); border-color: #D6D3D1; }
 
-.program-card:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-}
+.program-card.high   { border-left: 3px solid var(--forest); }
+.program-card.medium { border-left: 3px solid #D97706; }
+.program-card.low    { border-left: 3px solid #D6D3D1; }
 
-.program-card.high {
-  border-left: 3px solid #4ade80;
-}
+.likelihood-high   { color: var(--forest-dark); background: var(--forest-50); }
+.likelihood-medium { color: #92400E; background: #FFFBEB; }
+.likelihood-low    { color: #A8A29E; background: #FAFAFA; }
 
-.program-card.medium {
-  border-left: 3px solid #facc15;
-}
-
-.program-card.low {
-  border-left: 3px solid #94a3b8;
-}
-
-/* Likelihood badge */
-.likelihood-high { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-.likelihood-medium { color: #facc15; background: rgba(250, 204, 21, 0.1); }
-.likelihood-low { color: #94a3b8; background: rgba(148, 163, 184, 0.1); }
-
-/* Resource card */
+/* ============================================================
+   RESOURCE CARDS
+   ============================================================ */
 .resource-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px;
+  padding: 10px 11px;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Action step */
+/* ============================================================
+   ACTION PLAN STEPS
+   ============================================================ */
 .action-step {
   display: flex;
   gap: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.04);
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
-
 .action-step-number {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #0ea5e9;
+  background: var(--forest);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -101,304 +232,169 @@
   justify-content: center;
   flex-shrink: 0;
 }
+.action-step.immediate  .action-step-number { background: #DC2626; }
+.action-step.short_term .action-step-number { background: #D97706; }
+.action-step.ongoing    .action-step-number { background: var(--forest); }
 
-.action-step.immediate .action-step-number { background: #ef4444; }
-.action-step.short_term .action-step-number { background: #f97316; }
-.action-step.ongoing .action-step-number { background: #6366f1; }
-
-/* Chat bubbles */
+/* ============================================================
+   CHAT BUBBLES
+   ============================================================ */
 .bubble-user {
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: var(--forest);
   border-radius: 18px 18px 4px 18px;
-  padding: 12px 16px;
+  padding: 11px 15px;
   max-width: 80%;
   margin-left: auto;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+  color: white;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.2);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .bubble-assistant {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 18px 18px 18px 4px;
-  padding: 12px 16px;
+  padding: 11px 15px;
   max-width: 85%;
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-1);
 }
 
 .bubble-system {
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: #FAFAF9;
+  border: 1px solid var(--border-light);
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 6px 12px;
   text-align: center;
-  font-size: 12px;
-  color: #a5b4fc;
+  font-size: 11px;
+  color: var(--text-4);
+  font-weight: 500;
 }
 
-/* Nova Act badge */
+/* ============================================================
+   NOVA ACT BADGE
+   ============================================================ */
 .nova-act-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(251, 146, 60, 0.15);
-  border: 1px solid rgba(251, 146, 60, 0.3);
+  background: var(--ember-50);
+  border: 1px solid var(--ember-100);
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 11px;
-  color: #fb923c;
+  color: #9A3412;
+  font-weight: 600;
 }
 
-/* Typing indicator */
+/* ============================================================
+   TYPING INDICATOR
+   ============================================================ */
 @keyframes typing-dot {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+  0%, 80%, 100% { transform: scale(0.65); opacity: 0.4; }
+  40%           { transform: scale(1); opacity: 1; }
 }
-
 .typing-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #94a3b8;
+  background: var(--text-4);
   display: inline-block;
   animation: typing-dot 1.2s ease-in-out infinite;
 }
-
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Toast */
+/* ============================================================
+   TOAST
+   ============================================================ */
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-
 .toast {
   animation: toast-in 0.3s ease-out forwards;
-  background: rgba(30, 41, 59, 0.95);
-  border: 1px solid rgba(255,255,255,0.15);
-  backdrop-filter: blur(8px);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 11px 15px;
   font-size: 13px;
+  box-shadow: var(--shadow-md);
+  color: var(--text-1);
 }
 
-/* =====================================================
-   HACKATHON POLISH — NEW STYLES
-   ===================================================== */
-
-/* --- Persona Cards (Demo Mode) --- */
-.persona-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-  text-align: center;
-  color: white;
-}
-
-.persona-card:hover {
-  background: rgba(251, 146, 60, 0.12);
-  border-color: rgba(251, 146, 60, 0.45);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(251, 146, 60, 0.12);
-}
-
-.persona-card:active {
-  transform: translateY(0);
-}
-
-/* --- Nova Model Activity Strip --- */
-.model-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(148, 163, 184, 0.7);
-  cursor: pointer;
-  transition: background 0.25s, border-color 0.25s, color 0.25s, box-shadow 0.25s;
-  white-space: nowrap;
-}
-
-.model-pill:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(226, 232, 240, 0.9);
-}
-
-.pill-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(148, 163, 184, 0.4);
-  flex-shrink: 0;
-  transition: background 0.25s, box-shadow 0.25s;
-}
-
-/* Active pill — glowing state */
-@keyframes pill-glow {
-  0%, 100% { box-shadow: 0 0 6px 1px var(--pill-color, #38bdf8), 0 0 0 1px var(--pill-color, #38bdf8); }
-  50%       { box-shadow: 0 0 12px 3px var(--pill-color, #38bdf8), 0 0 0 1px var(--pill-color, #38bdf8); }
-}
-
-@keyframes dot-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%       { transform: scale(1.4); opacity: 0.8; }
-}
-
-.model-pill.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.5);
-  color: #7dd3fc;
-  animation: pill-glow 2s ease-in-out infinite;
-  --pill-color: rgba(56, 189, 248, 0.5);
-}
-
-.model-pill.active .pill-dot {
-  background: #38bdf8;
-  animation: dot-pulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 6px #38bdf8;
-}
-
-/* Nova Sonic — teal accent */
-#pill-sonic.active {
-  background: rgba(45, 212, 191, 0.15);
-  border-color: rgba(45, 212, 191, 0.5);
-  color: #99f6e4;
-  --pill-color: rgba(45, 212, 191, 0.5);
-}
-#pill-sonic.active .pill-dot { background: #2dd4bf; box-shadow: 0 0 6px #2dd4bf; }
-
-/* Nova Embeddings — violet accent */
-#pill-embed.active {
-  background: rgba(167, 139, 250, 0.15);
-  border-color: rgba(167, 139, 250, 0.5);
-  color: #c4b5fd;
-  --pill-color: rgba(167, 139, 250, 0.5);
-}
-#pill-embed.active .pill-dot { background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
-
-/* Nova Act — orange accent */
-#pill-act.active {
-  background: rgba(251, 146, 60, 0.15);
-  border-color: rgba(251, 146, 60, 0.5);
-  color: #fdba74;
-  --pill-color: rgba(251, 146, 60, 0.5);
-}
-#pill-act.active .pill-dot { background: #fb923c; box-shadow: 0 0 6px #fb923c; }
-
-/* --- Benefits Value Banner --- */
-.value-banner {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.1), inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
-@keyframes banner-in {
-  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.value-banner:not(.hidden) {
-  animation: banner-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* --- Agent Reasoning Trace --- */
+/* ============================================================
+   AGENT REASONING TRACE
+   ============================================================ */
 .reasoning-trace-wrapper {
   margin-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid var(--border-light);
   padding-top: 8px;
 }
-
 .reasoning-toggle {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  color: rgba(148, 163, 184, 0.7);
+  color: var(--text-4);
   background: none;
   border: none;
   cursor: pointer;
   padding: 2px 4px;
   border-radius: 4px;
-  transition: color 0.2s, background 0.2s;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
 }
+.reasoning-toggle:hover { color: var(--text-3); background: #F5F5F4; }
 
-.reasoning-toggle:hover {
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.toggle-chevron {
-  transition: transform 0.25s ease;
-  flex-shrink: 0;
-}
+.toggle-chevron { transition: transform 0.22s ease; flex-shrink: 0; }
 
 .reasoning-trace {
   margin-top: 8px;
   padding-left: 4px;
   position: relative;
 }
-
-/* Vertical connecting line */
 .reasoning-trace::before {
   content: '';
   position: absolute;
-  left: 7px;
-  top: 8px;
-  bottom: 8px;
+  left: 7px; top: 8px; bottom: 8px;
   width: 1px;
-  background: linear-gradient(to bottom, rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.05));
+  background: linear-gradient(to bottom, var(--forest-100), transparent);
 }
 
 .trace-step {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 6px 0;
+  padding: 5px 0;
   position: relative;
 }
-
 .trace-dot {
-  width: 15px;
-  height: 15px;
+  width: 15px; height: 15px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.3);
-  border: 1px solid rgba(99, 102, 241, 0.6);
+  background: var(--forest-50);
+  border: 1.5px solid var(--forest-100);
   flex-shrink: 0;
   margin-top: 1px;
   position: relative;
   z-index: 1;
 }
-
-.trace-content {
-  flex: 1;
-  min-width: 0;
-}
-
+.trace-content { flex: 1; min-width: 0; }
 .trace-tool {
   font-size: 11px;
-  color: rgba(199, 210, 254, 0.85);
-  font-weight: 500;
+  color: var(--forest-dark);
+  font-weight: 600;
   line-height: 1.4;
 }
-
-.trace-tool strong {
-  color: #a5b4fc;
-}
-
+.trace-tool strong { color: var(--forest); }
 .trace-input {
   font-size: 10px;
-  color: rgba(148, 163, 184, 0.6);
-  margin-top: 2px;
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+  color: var(--text-4);
+  margin-top: 1px;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
