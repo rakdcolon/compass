@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compass — AI Benefits Navigator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            compass: { 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1' }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white font-sans">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-300 flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-slate-900">
+            <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight">Compass</span>
+        <span class="text-xs text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded-full">AI Benefits Navigator</span>
+        <!-- Demo mode badge (shown when demo is active) -->
+        <span id="demo-badge" class="hidden text-xs text-orange-300 bg-orange-900/40 border border-orange-700/40 px-2 py-0.5 rounded-full">Demo Mode</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-400">Powered by</span>
+        <span class="text-xs font-semibold text-orange-400">Amazon Nova</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Nova Model Activity Strip (shown in chat view) -->
+  <div id="model-strip" class="hidden fixed top-14 left-0 right-0 z-40 bg-black/30 backdrop-blur-sm border-b border-white/5 px-4 py-2">
+    <div class="max-w-6xl mx-auto flex items-center gap-3">
+      <span class="text-xs text-slate-500 mr-1">Active Model:</span>
+      <button onclick="window.open('https://docs.aws.amazon.com/nova/latest/userguide/what-is-nova.html','_blank')" class="model-pill" id="pill-lite" title="Nova 2 Lite — Multi-agent reasoning & tool use">
+        <span class="pill-dot"></span>Nova 2 Lite
+      </button>
+      <button onclick="window.open('https://docs.aws.amazon.com/nova/latest/userguide/speech.html','_blank')" class="model-pill" id="pill-sonic" title="Nova 2 Sonic — Real-time voice conversation">
+        <span class="pill-dot"></span>Nova 2 Sonic
+      </button>
+      <button onclick="window.open('https://docs.aws.amazon.com/nova/latest/userguide/nova-embeddings.html','_blank')" class="model-pill" id="pill-embed" title="Nova Embeddings — Multimodal document matching">
+        <span class="pill-dot"></span>Nova Embeddings
+      </button>
+      <button onclick="window.open('https://docs.aws.amazon.com/nova/latest/nova2-userguide/nova-act.html','_blank')" class="model-pill" id="pill-act" title="Nova Act — Browser automation">
+        <span class="pill-dot"></span>Nova Act
+      </button>
+      <span class="text-xs text-slate-600 ml-auto">Click any pill → AWS docs</span>
+    </div>
+  </div>
+
+  <main class="pt-16">
+
+    <!-- ===== WELCOME VIEW ===== -->
+    <section id="view-welcome" class="min-h-screen flex flex-col items-center justify-center px-4 py-20">
+      <div class="max-w-3xl mx-auto text-center">
+
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 bg-blue-900/40 border border-blue-700/50 rounded-full px-4 py-1.5 mb-8">
+          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span class="text-sm text-blue-200">$30 billion in benefits go unclaimed every year</span>
+        </div>
+
+        <!-- Hero -->
+        <h1 class="text-5xl sm:text-6xl font-bold mb-4 leading-tight">
+          Everyone deserves<br/>
+          <span class="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+            the help they're entitled to
+          </span>
+        </h1>
+        <p class="text-xl text-slate-300 mb-10 leading-relaxed max-w-xl mx-auto">
+          Compass uses AI to help you discover and apply for government benefits —
+          food, healthcare, housing, and more — in plain language, in minutes.
+        </p>
+
+        <!-- Persona Cards (Demo Mode) -->
+        <div class="mb-6">
+          <p class="text-sm text-slate-400 mb-4">
+            <span class="text-orange-400 font-medium">Try a live demo</span> — see Compass in action with a real scenario:
+          </p>
+          <div class="grid grid-cols-3 gap-3 max-w-2xl mx-auto mb-4">
+            <button onclick="App.runDemo('single_parent')" class="persona-card group">
+              <span class="text-3xl mb-2 block">👩‍👧‍👦</span>
+              <span class="font-semibold text-sm">Single Parent</span>
+              <span class="text-xs text-slate-400 mt-1 block">Lost job, 2 kids, CA</span>
+              <span class="text-xs text-orange-400 mt-2 block opacity-0 group-hover:opacity-100 transition-opacity">Run Demo →</span>
+            </button>
+            <button onclick="App.runDemo('senior')" class="persona-card group">
+              <span class="text-3xl mb-2 block">👴</span>
+              <span class="font-semibold text-sm">Senior Citizen</span>
+              <span class="text-xs text-slate-400 mt-1 block">Retired, Medicare costs, TX</span>
+              <span class="text-xs text-orange-400 mt-2 block opacity-0 group-hover:opacity-100 transition-opacity">Run Demo →</span>
+            </button>
+            <button onclick="App.runDemo('veteran')" class="persona-card group">
+              <span class="text-3xl mb-2 block">🎖️</span>
+              <span class="font-semibold text-sm">Veteran</span>
+              <span class="text-xs text-slate-400 mt-1 block">Disabled, part-time, FL</span>
+              <span class="text-xs text-orange-400 mt-2 block opacity-0 group-hover:opacity-100 transition-opacity">Run Demo →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="flex items-center gap-4 max-w-xs mx-auto mb-6">
+          <div class="flex-1 h-px bg-white/10"></div>
+          <span class="text-slate-500 text-xs">or use your own situation</span>
+          <div class="flex-1 h-px bg-white/10"></div>
+        </div>
+
+        <!-- Voice Button -->
+        <div class="flex flex-col items-center gap-3 mb-10">
+          <button
+            id="btn-start-voice"
+            onclick="App.startVoice()"
+            class="relative group w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 shadow-2xl shadow-blue-500/30 hover:shadow-blue-400/50 hover:scale-105 transition-all duration-200 flex items-center justify-center"
+          >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+          <p class="text-slate-400 text-sm">Speak your situation, or
+            <button onclick="App.startChat()" class="text-blue-300 hover:text-blue-200 underline underline-offset-2 transition-colors">type it instead</button>
+          </p>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="flex items-center justify-center gap-3 mb-10">
+          <span class="text-slate-400 text-sm">Language:</span>
+          <select id="language-select" class="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="App.setLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-10">
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+            <div class="text-2xl font-bold text-blue-300">$30B</div>
+            <div class="text-xs text-slate-400 mt-1">Unclaimed benefits/year</div>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+            <div class="text-2xl font-bold text-cyan-300">7M</div>
+            <div class="text-xs text-slate-400 mt-1">Eligible for SNAP, not enrolled</div>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+            <div class="text-2xl font-bold text-emerald-300">10+</div>
+            <div class="text-xs text-slate-400 mt-1">Programs checked instantly</div>
+          </div>
+        </div>
+
+        <!-- Nova model pills -->
+        <div class="flex items-center justify-center gap-5 text-xs text-slate-500">
+          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>Nova 2 Lite</span>
+          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>Nova 2 Sonic</span>
+          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>Nova Embeddings</span>
+          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>Nova Act</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== CHAT VIEW ===== -->
+    <section id="view-chat" class="hidden min-h-screen pt-24 pb-32">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="flex gap-4 h-[calc(100vh-9rem)]">
+
+          <!-- Left: Conversation -->
+          <div class="flex-1 flex flex-col">
+
+            <!-- Nova Sonic Voice Panel -->
+            <div id="voice-panel" class="hidden bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-400">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                </svg>
+                <span class="text-xs font-semibold text-blue-300">Nova 2 Sonic Voice Assistant</span>
+                <div id="voice-status-dot" class="w-2 h-2 rounded-full bg-slate-500 ml-1"></div>
+                <span id="voice-status-text" class="text-xs text-slate-400">Click mic to speak</span>
+                <button onclick="Voice.toggleRecording()" id="btn-mic-chat"
+                  class="ml-auto w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition-colors">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+              <canvas id="waveform-canvas" class="w-full h-10 rounded-lg bg-white/5" width="600" height="40"></canvas>
+              <div id="transcript-display" class="mt-2 text-xs text-slate-400 italic min-h-[1.25rem]"></div>
+            </div>
+
+            <!-- Messages -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin"></div>
+
+            <!-- Input -->
+            <div class="mt-4 flex gap-2">
+              <div class="flex-1">
+                <textarea id="chat-input" placeholder="Describe your situation..." rows="2"
+                  class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.sendMessage();}">
+                </textarea>
+              </div>
+              <div class="flex flex-col gap-2">
+                <button onclick="App.sendMessage()"
+                  class="w-11 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition-colors">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/>
+                  </svg>
+                </button>
+                <!-- Document upload -->
+                <label class="w-11 h-11 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer" title="Upload document">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <input type="file" class="hidden" accept="image/*,.pdf" id="file-input" onchange="App.uploadDocument(this)" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Sample document links -->
+            <div class="mt-2 flex items-center gap-3">
+              <span class="text-xs text-slate-600">Try a sample document:</span>
+              <button onclick="App.uploadSample('sample_pay_stub.png')"
+                class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                📄 Pay Stub
+              </button>
+              <button onclick="App.uploadSample('sample_utility_bill.png')"
+                class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                💡 Utility Bill
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Results Panel -->
+          <div id="results-panel" class="w-80 flex flex-col gap-3 overflow-y-auto scrollbar-thin">
+
+            <!-- Value Banner (hidden until results arrive) -->
+            <div id="value-banner" class="hidden value-banner rounded-2xl p-4 text-center">
+              <div class="text-xs text-blue-300 mb-1 font-medium tracking-wide uppercase">Estimated Annual Value</div>
+              <div class="text-3xl font-bold text-white" id="value-total">$0</div>
+              <div class="text-xs text-blue-200 mt-1" id="value-subline">Across 0 programs</div>
+            </div>
+
+            <!-- Document preview -->
+            <div id="doc-preview-card" class="hidden bg-white/5 border border-white/10 rounded-2xl p-4">
+              <h3 class="text-xs font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                </svg>
+                Document Analyzed — Nova Vision
+              </h3>
+              <img id="doc-preview-img" class="w-full rounded-lg mb-2 max-h-28 object-cover" alt="Document" />
+              <div id="doc-analysis-result" class="text-xs text-slate-400 space-y-0.5"></div>
+            </div>
+
+            <!-- Eligible Programs -->
+            <div id="programs-card" class="hidden">
+              <h3 class="text-xs font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-400">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>
+                </svg>
+                Programs You May Qualify For
+              </h3>
+              <div id="programs-list" class="space-y-2"></div>
+            </div>
+
+            <!-- Local Resources -->
+            <div id="resources-card" class="hidden">
+              <h3 class="text-xs font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-400">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                Local Resources
+              </h3>
+              <div id="resources-list" class="space-y-2"></div>
+            </div>
+
+            <!-- Action Plan -->
+            <div id="action-plan-card" class="hidden bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border border-blue-700/40 rounded-2xl p-4">
+              <h3 class="text-xs font-semibold text-blue-200 mb-3 flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9,11 12,14 22,4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                Your Action Plan
+              </h3>
+              <div id="action-plan-steps" class="space-y-2"></div>
+            </div>
+
+            <!-- Placeholder -->
+            <div id="results-placeholder" class="flex flex-col items-center justify-center h-48 text-center">
+              <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-slate-500">
+                  <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
+                </svg>
+              </div>
+              <p class="text-slate-500 text-sm">Results appear here after Compass checks your eligibility</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom bar -->
+  <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm border-t border-white/10 px-4 py-2">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <button onclick="App.goHome()" class="text-xs text-slate-400 hover:text-slate-300 flex items-center gap-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        </svg>
+        Home
+      </button>
+      <div class="flex items-center gap-2">
+        <div class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+        <span class="text-xs text-slate-400">Compass is ready to help</span>
+      </div>
+      <button onclick="Voice.toggleRecording()" id="btn-voice-bar"
+        class="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition-colors">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-slate-800 border border-white/10 rounded-2xl p-8 text-center max-w-xs">
+      <div class="w-12 h-12 rounded-full border-2 border-blue-500 border-t-transparent animate-spin mx-auto mb-4"></div>
+      <p id="loading-text" class="text-slate-300 text-sm font-medium">Analyzing your situation...</p>
+      <p id="loading-model" class="text-xs text-orange-400 mt-1">Amazon Nova 2 Lite</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <script src="/static/js/api.js?v=3"></script>
+  <script src="/static/js/voice.js?v=3"></script>
+  <script src="/static/js/app.js?v=3"></script>
+</body>
+</html>
