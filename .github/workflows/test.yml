@@ -1,0 +1,48 @@
+name: Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests (no AWS required)
+        run: |
+          pytest tests/test_eligibility.py -v \
+            --cov=backend/tools/eligibility \
+            --cov-report=term-missing \
+            --tb=short
+
+      - name: Run API tests (mocked AWS)
+        run: |
+          pytest tests/test_api.py -v \
+            --cov=backend \
+            --cov-report=xml \
+            --tb=short
+        env:
+          AWS_ACCESS_KEY_ID: testing
+          AWS_SECRET_ACCESS_KEY: testing
+          AWS_DEFAULT_REGION: us-east-1
+          NOVA_ACT_ENABLED: "false"
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false

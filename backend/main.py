@@ -20,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend.agents.orchestrator import CompassOrchestrator
+from backend.database import SessionStore
 from backend.services.nova_embeddings import NovaEmbeddingsService
 from backend.services.nova_sonic import NovaSonicService
 
@@ -33,6 +34,7 @@ logger = logging.getLogger(__name__)
 orchestrator: Optional[CompassOrchestrator] = None
 embeddings_service: Optional[NovaEmbeddingsService] = None
 sonic_service: Optional[NovaSonicService] = None
+session_store: Optional[SessionStore] = None
 
 # Demo persona seed messages — realistic natural-language inputs that trigger the full agent loop
 DEMO_PERSONAS = {
@@ -75,11 +77,14 @@ DEMO_PERSONAS = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize services at startup."""
-    global orchestrator, embeddings_service, sonic_service
+    global orchestrator, embeddings_service, sonic_service, session_store
 
     logger.info("Starting Compass AI Benefits Navigator...")
 
-    orchestrator = CompassOrchestrator()
+    session_store = SessionStore()
+    await session_store.init_db()
+
+    orchestrator = CompassOrchestrator(store=session_store)
     sonic_service = NovaSonicService()
 
     # Generate sample documents for demo if they don't exist
@@ -330,7 +335,7 @@ async def analyze_document(
 @app.get("/api/session/{session_id}")
 async def get_session(session_id: str):
     """Get full session state including eligible programs and action plan."""
-    session = orchestrator.get_session(session_id)
+    session = await orchestrator.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -358,7 +363,7 @@ async def navigate_portal(request: NavigateRequest):
         raise HTTPException(status_code=404, detail=f"Program '{request.program_id}' not found")
 
     user_info = request.user_info or {}
-    session = orchestrator.get_session(request.session_id)
+    session = await orchestrator.get_session(request.session_id)
     if session:
         user_info = {**session.get("user_profile", {}), **user_info}
 
@@ -400,7 +405,25 @@ async def _run_nova_act(
     """
     Use Nova Act to automate portal navigation and application pre-filling.
     In demo mode, navigates the local /demo-portal for reliable demonstration.
+    Set NOVA_ACT_ENABLED=false to disable (e.g. in Docker without Playwright).
     """
+    if os.getenv("NOVA_ACT_ENABLED", "true").lower() == "false":
+        ref_num = "COMPASS-" + "".join(random.choices(string.digits, k=8))
+        return {
+            "status": "unavailable",
+            "program_name": program_name,
+            "apply_url": apply_url,
+            "message": "Nova Act requires a local browser environment (not available in this deployment).",
+            "instructions": [
+                "1. Go to the application portal",
+                "2. Click 'Apply' or 'Get Started'",
+                "3. Complete the application with your household information",
+                "4. Upload required documents (ID, pay stubs, proof of address)",
+                "5. Submit and note your confirmation number",
+            ],
+            "confirmation": ref_num,
+        }
+
     try:
         from nova_act import NovaAct
 

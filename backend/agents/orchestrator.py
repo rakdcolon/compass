@@ -10,6 +10,7 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any, Optional
 
+from backend.database import SessionStore
 from backend.services.nova_lite import NovaLiteService
 
 logger = logging.getLogger(__name__)
@@ -203,15 +204,19 @@ class CompassOrchestrator:
     Uses Nova 2 Lite with tool use for the full agentic loop.
     """
 
-    def __init__(self):
+    def __init__(self, store: Optional[SessionStore] = None):
         self.nova_lite = NovaLiteService()
         self._sessions: dict[str, dict] = {}
+        self.store = store
 
-    def get_or_create_session(self, session_id: str) -> dict:
-        """Get existing session or create a new one."""
+    async def get_or_create_session(self, session_id: str) -> dict:
+        """Get existing session or create a new one (delegates to SessionStore when available)."""
+        if self.store:
+            return await self.store.get_or_create_session(session_id)
+        # In-memory fallback (no store configured)
         if session_id not in self._sessions:
             self._sessions[session_id] = {
-                "id": session_id,
+                "session_id": session_id,
                 "messages": [],
                 "eligible_programs": [],
                 "local_resources": [],
@@ -239,7 +244,7 @@ class CompassOrchestrator:
         Returns:
             dict with 'response', 'tool_calls_made', 'session_data'
         """
-        session = self.get_or_create_session(session_id)
+        session = await self.get_or_create_session(session_id)
 
         # Build user message content
         content: list[dict] = []
@@ -266,6 +271,9 @@ class CompassOrchestrator:
             "content": [{"text": response_text}],
         })
 
+        if self.store:
+            await self.store.save_session(session)
+
         return {
             "response": response_text,
             "tool_calls_made": tool_calls_made,
@@ -291,7 +299,7 @@ class CompassOrchestrator:
         Yields SSE strings: 'data: {...}\\n\\n'
         Final event: 'data: {"done": true, "tool_calls": [...], "session_data": {...}}\\n\\n'
         """
-        session = self.get_or_create_session(session_id)
+        session = await self.get_or_create_session(session_id)
         session["messages"].append({"role": "user", "content": [{"text": user_message}]})
         messages = list(session["messages"])
         tool_calls_made: list[dict] = []
@@ -354,6 +362,9 @@ class CompassOrchestrator:
             "content": [{"text": full_response_text}],
         })
 
+        if self.store:
+            await self.store.save_session(session)
+
         # Send final SSE event with session metadata and clean response text
         session_data = {
             "eligible_programs": session.get("eligible_programs", []),
@@ -362,7 +373,7 @@ class CompassOrchestrator:
             "document_analysis": session.get("document_analysis"),
             "has_results": bool(session.get("eligible_programs")),
         }
-        yield f"data: {json.dumps({'done': True, 'response': full_response_text, 'tool_calls': tool_calls_made, 'session_id': session['id'], 'session_data': session_data})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'response': full_response_text, 'tool_calls': tool_calls_made, 'session_id': session['session_id'], 'session_data': session_data})}\n\n"
 
     async def _run_agent_loop(self, session: dict) -> tuple[str, list]:
         """
@@ -475,10 +486,14 @@ class CompassOrchestrator:
         else:
             return {"error": f"Unknown tool: {tool_name}"}
 
-    def get_session(self, session_id: str) -> Optional[dict]:
+    async def get_session(self, session_id: str) -> Optional[dict]:
+        if self.store:
+            return await self.store.get_session(session_id)
         return self._sessions.get(session_id)
 
-    def clear_session(self, session_id: str) -> None:
+    async def clear_session(self, session_id: str) -> None:
+        if self.store:
+            await self.store.clear_session(session_id)
         self._sessions.pop(session_id, None)
 
 

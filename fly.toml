@@ -1,0 +1,31 @@
+app = "compass-benefits"
+primary_region = "iad"
+
+[build]
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  NOVA_ACT_ENABLED = "false"
+  HOST = "0.0.0.0"
+  PORT = "8000"
+  COMPASS_DB_PATH = "/app/data/compass.db"
+
+[[mounts]]
+  destination = "/app/data"
+  source = "compass_data"
