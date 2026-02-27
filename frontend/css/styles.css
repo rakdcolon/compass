@@ -67,43 +67,105 @@
 }
 
 /* ============================================================
-   MULTI-RING VOICE BUTTON
+   HERO LAYOUT — two-column editorial grid
    ============================================================ */
-.voice-ring {
+.hero-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: center;
+}
+@media (max-width: 880px) {
+  .hero-layout { grid-template-columns: 1fr; }
+  .hero-right   { display: none; }
+}
+
+/* ============================================================
+   HERO CTA BUTTONS
+   ============================================================ */
+.hero-cta-primary {
+  background: #15803D;
+  box-shadow: 0 4px 20px rgba(21,128,61,0.30), 0 1px 4px rgba(21,128,61,0.15);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.hero-cta-primary:hover {
+  background: #166534;
+  box-shadow: 0 8px 28px rgba(21,128,61,0.42);
+  transform: translateY(-1px);
+}
+.hero-cta-primary:active { transform: translateY(0); }
+
+.hero-cta-secondary {
+  background: white;
+  border: 1.5px solid #E5DDD3;
+  color: #57534E;
+  box-shadow: 0 1px 4px rgba(28,25,23,0.05);
+  transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+}
+.hero-cta-secondary:hover {
+  border-color: #15803D;
+  color: #15803D;
+  box-shadow: 0 4px 12px rgba(21,128,61,0.12);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   SPARKLE DECORATIVES
+   ============================================================ */
+.sparkle {
+  position: absolute;
+  font-style: normal;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  font-size: 16px;
+  color: #15803D;
+  opacity: 0.22;
+  animation: sparkle-drift 7s ease-in-out infinite;
+}
+@keyframes sparkle-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-10px) rotate(20deg); }
+}
+
+/* ============================================================
+   HERO CIRCLE — concentric paper-cut rings
+   ============================================================ */
+.hero-circle-wrap {
+  position: relative;
+  width: 420px;
+  height: 420px;
+}
+.hc {
   position: absolute;
   border-radius: 50%;
-  pointer-events: none;
-  top: 50%;
   left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
 }
-@keyframes vr-expand-1 {
-  0%   { width: 96px;  height: 96px;  opacity: 0.55; }
-  100% { width: 156px; height: 156px; opacity: 0; }
-}
-@keyframes vr-expand-2 {
-  0%   { width: 96px;  height: 96px;  opacity: 0.35; }
-  100% { width: 200px; height: 200px; opacity: 0; }
-}
-@keyframes vr-expand-3 {
-  0%   { width: 96px;  height: 96px;  opacity: 0.18; }
-  100% { width: 260px; height: 260px; opacity: 0; }
-}
-.voice-ring-1 { background: rgba(21,128,61,0.28); animation: vr-expand-1 2.8s ease-out infinite; }
-.voice-ring-2 { background: rgba(21,128,61,0.18); animation: vr-expand-2 2.8s ease-out 0.85s infinite; }
-.voice-ring-3 { background: rgba(21,128,61,0.10); animation: vr-expand-3 2.8s ease-out 1.7s infinite; }
+/* Outermost → innermost, light to deep green */
+.hc-5 { width: 420px; height: 420px; background: #f0fdf4; }
+.hc-4 { width: 328px; height: 328px; background: #dcfce7; box-shadow: 0 6px 24px rgba(21,128,61,0.08); }
+.hc-3 { width: 248px; height: 248px; background: #86efac; box-shadow: 0 8px 28px rgba(21,128,61,0.14); }
+.hc-2 { width: 176px; height: 176px; background: #22c55e; box-shadow: 0 8px 32px rgba(21,128,61,0.22); }
+.hc-1 { width: 108px; height: 108px; background: #15803D; box-shadow: 0 6px 28px rgba(21,128,61,0.38); }
 
-/* Main voice button gradient + glow */
-.voice-btn-main {
-  background: linear-gradient(145deg, #1a9e4d 0%, #15803D 50%, #0f6b34 100%);
-  box-shadow: 0 0 0 0 rgba(21,128,61,0), 0 8px 32px rgba(21,128,61,0.4), 0 2px 8px rgba(21,128,61,0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* Small floating info badges around the circle */
+.circle-float-badge {
+  position: absolute;
+  background: white;
+  border: 1px solid #E5DDD3;
+  border-radius: 10px;
+  padding: 6px 10px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(28,25,23,0.08), 0 1px 3px rgba(28,25,23,0.05);
+  min-width: 52px;
 }
-.voice-btn-main:hover {
-  box-shadow: 0 0 0 0 rgba(21,128,61,0), 0 12px 40px rgba(21,128,61,0.5), 0 4px 12px rgba(21,128,61,0.35);
-  transform: scale(1.06);
-}
-.voice-btn-main:active { transform: scale(0.97); }
+
+/* ============================================================
+   HERO STAT STRIP (replaces glass stat cards)
+   ============================================================ */
+.hero-stats-strip .w-px { min-height: 40px; }
 
 /* ============================================================
    MIC BUTTONS — ID-level specificity ensures gradient shows
@@ -182,26 +244,24 @@
 }
 
 /* ============================================================
-   PERSONA CARDS (Welcome view)
+   PERSONA CARDS (Welcome view) — clean white, minimal
    ============================================================ */
 .persona-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   color: var(--text-1);
   display: flex;
   flex-direction: column;
-  box-shadow: var(--glass-shadow);
-  /* tilt transition handled by .tilt-card JS; keep hover shadow only */
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 1px 6px rgba(28,25,23,0.05), 0 1px 2px rgba(28,25,23,0.04);
+  /* tilt transition handled by .tilt-card JS */
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .persona-card:hover {
-  box-shadow: 0 16px 48px rgba(21, 128, 61, 0.14), 0 4px 16px rgba(28, 25, 23, 0.08);
-  border-color: rgba(21, 128, 61, 0.35);
+  box-shadow: 0 8px 24px rgba(28,25,23,0.10), 0 2px 6px rgba(28,25,23,0.06);
+  border-color: #D1D5DB;
 }
 .persona-card:active { opacity: 0.92; }
 

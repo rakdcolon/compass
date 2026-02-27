@@ -30,14 +30,10 @@
   <!-- GSAP — animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-  <!-- Three.js — 3D background -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
-
   <link rel="stylesheet" href="/static/css/styles.css" />
 
   <style>
-    /* Gradient body background — gives depth for the 3D canvas */
-    body { background: linear-gradient(155deg, #eaf5ec 0%, #f9f5ee 42%, #fef3e6 100%) !important; }
+    body { background: #FAFAF9 !important; }
 
     /* Persona card gradient top bars */
     .bar-ember   { background: linear-gradient(90deg, #ea580c, #f97316); }
@@ -111,9 +107,6 @@
 </head>
 <body class="min-h-screen text-[#1C1917] font-sans antialiased">
 
-  <!-- ===== THREE.JS BACKGROUND CANVAS ===== -->
-  <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
-
   <!-- ===== NAVIGATION ===== -->
   <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
     <div class="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
@@ -157,57 +150,149 @@
   <main class="pt-14" style="position:relative;z-index:1;">
 
     <!-- ===== WELCOME VIEW ===== -->
-    <section id="view-welcome" class="min-h-screen flex flex-col">
+    <section id="view-welcome" class="min-h-screen flex flex-col relative overflow-hidden">
 
-      <!-- Hero -->
-      <div class="max-w-4xl mx-auto px-5 pt-20 pb-16 text-center w-full">
+      <!-- Scattered sparkle decoratives -->
+      <span class="sparkle" style="top:17%;left:5%;font-size:20px;">✦</span>
+      <span class="sparkle" style="top:44%;left:2%;font-size:11px;color:#ea580c;opacity:0.22;animation-delay:1.3s;">✦</span>
+      <span class="sparkle" style="top:72%;left:11%;font-size:14px;animation-delay:0.7s;">+</span>
+      <span class="sparkle" style="top:28%;right:5%;font-size:13px;color:#ea580c;opacity:0.20;animation-delay:2.1s;">✦</span>
+      <span class="sparkle" style="top:82%;right:7%;font-size:17px;animation-delay:0.4s;">✦</span>
+      <span class="sparkle" style="top:60%;right:3%;font-size:10px;animation-delay:1.8s;">+</span>
+      <span class="sparkle" style="top:10%;right:22%;font-size:9px;animation-delay:3s;">✦</span>
 
-        <!-- Impact badge -->
-        <div class="hero-badge impact-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8">
-          <span class="w-2 h-2 rounded-full bg-ember animate-pulse flex-shrink-0"></span>
-          <span class="text-sm text-[#C2410C] font-semibold">$30 billion in benefits go unclaimed every year</span>
-        </div>
+      <!-- Hero — two column grid -->
+      <div class="hero-layout max-w-6xl mx-auto px-6 pt-20 pb-10 w-full">
 
-        <!-- Headline -->
-        <h1 class="hero-h1 text-5xl font-extrabold text-[#1C1917] mb-6 leading-[1.08] tracking-tight">
-          You may be entitled to<br/>
-          <span class="gradient-text">more help than you know.</span>
-        </h1>
+        <!-- LEFT: text content -->
+        <div class="hero-left">
 
-        <!-- Subtext -->
-        <p class="hero-p text-lg text-[#57534E] mb-12 leading-relaxed max-w-2xl mx-auto font-light">
-          Compass uses AI to discover government benefits you qualify for —
-          food, healthcare, housing, and more. <strong class="font-semibold text-[#44403C]">Conversational. Multilingual. Free.</strong>
-        </p>
-
-        <!-- Stats — glass cards -->
-        <div class="hero-stats grid grid-cols-3 gap-4 max-w-xl mx-auto mb-14">
-          <div class="glass-card stat-card-ember rounded-2xl p-5 text-center group hover:scale-105 transition-transform duration-300">
-            <div class="text-[10px] text-[#A8A29E] font-semibold uppercase tracking-widest mb-2">Unclaimed yearly</div>
-            <div class="hero-stat-number text-3xl font-extrabold text-ember mb-1">$30B</div>
-            <div class="text-[10px] text-[#A8A29E] leading-tight">In benefits go unclaimed</div>
+          <!-- Impact badge -->
+          <div class="hero-badge impact-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8">
+            <span class="w-2 h-2 rounded-full bg-ember animate-pulse flex-shrink-0"></span>
+            <span class="text-sm text-[#C2410C] font-semibold">$30 billion in benefits go unclaimed every year</span>
           </div>
-          <div class="glass-card stat-card-forest rounded-2xl p-5 text-center group hover:scale-105 transition-transform duration-300">
-            <div class="text-[10px] text-[#A8A29E] font-semibold uppercase tracking-widest mb-2">Not enrolled</div>
-            <div class="hero-stat-number text-3xl font-extrabold text-forest mb-1">7M</div>
-            <div class="text-[10px] text-[#A8A29E] leading-tight">SNAP-eligible Americans</div>
-          </div>
-          <div class="glass-card stat-card-sky rounded-2xl p-5 text-center group hover:scale-105 transition-transform duration-300">
-            <div class="text-[10px] text-[#A8A29E] font-semibold uppercase tracking-widest mb-2">Miss savings</div>
-            <div class="hero-stat-number text-3xl font-extrabold text-[#0EA5E9] mb-1">60%</div>
-            <div class="text-[10px] text-[#A8A29E] leading-tight">Of eligible seniors</div>
-          </div>
-        </div>
 
-        <!-- Demo label -->
-        <div class="flex items-center gap-4 mb-6 justify-center">
-          <div class="h-px w-16 bg-gradient-to-r from-transparent to-[#E5DDD3]"></div>
+          <!-- Headline -->
+          <h1 class="hero-h1 text-5xl font-extrabold text-[#1C1917] mb-6 leading-[1.06] tracking-tight">
+            You may be entitled to<br/>
+            <span class="gradient-text">more help than you know.</span>
+          </h1>
+
+          <!-- Subtext -->
+          <p class="hero-p text-[1.0625rem] text-[#57534E] mb-10 leading-relaxed font-light" style="max-width:440px;">
+            Compass uses AI to discover government benefits you qualify for —
+            food, healthcare, housing, and more.
+            <strong class="font-semibold text-[#44403C]">Conversational. Multilingual. Free.</strong>
+          </p>
+
+          <!-- Stats — clean inline strip, no cards -->
+          <div class="hero-stats-strip flex items-start gap-7 mb-10">
+            <div>
+              <div class="hero-stat-number text-[2.4rem] font-extrabold text-ember leading-none mb-1">$30B</div>
+              <div class="text-[11px] text-[#A8A29E] leading-snug" style="max-width:88px;">Unclaimed benefits yearly</div>
+            </div>
+            <div class="w-px self-stretch bg-[#E5DDD3] mx-1"></div>
+            <div>
+              <div class="hero-stat-number text-[2.4rem] font-extrabold text-[#1C1917] leading-none mb-1">7M</div>
+              <div class="text-[11px] text-[#A8A29E] leading-snug" style="max-width:88px;">Americans miss SNAP benefits</div>
+            </div>
+            <div class="w-px self-stretch bg-[#E5DDD3] mx-1"></div>
+            <div>
+              <div class="hero-stat-number text-[2.4rem] font-extrabold text-[#1C1917] leading-none mb-1">60%</div>
+              <div class="text-[11px] text-[#A8A29E] leading-snug" style="max-width:88px;">Of seniors miss Medicare savings</div>
+            </div>
+          </div>
+
+          <!-- CTAs -->
+          <div class="flex flex-wrap items-center gap-3 mb-8">
+            <button onclick="App.startVoice()" id="btn-start-voice"
+              class="hero-cta-primary flex items-center gap-2.5 px-6 py-3 rounded-full font-bold text-sm text-white"
+              aria-label="Start voice conversation">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+              </svg>
+              Start with Voice
+            </button>
+            <button onclick="App.startChat()"
+              class="hero-cta-secondary flex items-center gap-2 px-5 py-3 rounded-full font-semibold text-sm">
+              Type instead →
+            </button>
+          </div>
+
+          <!-- Language Selector -->
+          <div class="flex items-center gap-3 mb-8">
+            <span class="text-[#A8A29E] text-sm">Language:</span>
+            <select id="language-select" class="border border-[#E5DDD3] rounded-lg px-3 py-1.5 text-sm text-[#44403C] focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest bg-white" onchange="App.setLanguage(this.value)">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+
+          <!-- Nova models footer -->
+          <div class="flex items-center gap-5 text-xs text-[#A8A29E]">
+            <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova 2 Lite</span>
+            <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova 2 Sonic</span>
+            <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova Embeddings</span>
+            <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova Act</span>
+          </div>
+
+        </div><!-- /hero-left -->
+
+        <!-- RIGHT: decorative concentric circles (paper-cut style) -->
+        <div class="hero-right flex items-center justify-center">
+          <div class="hero-circle-wrap relative">
+
+            <!-- Paper-cut depth layers — outermost to innermost -->
+            <div class="hc hc-5"></div>
+            <div class="hc hc-4"></div>
+            <div class="hc hc-3"></div>
+            <div class="hc hc-2"></div>
+
+            <!-- Center: Compass icon on forest green -->
+            <div class="hc hc-1 flex items-center justify-center flex-col gap-1.5">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(255,255,255,0.18);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
+                </svg>
+              </div>
+              <span class="text-white text-[9px] font-bold tracking-[0.15em] uppercase" style="opacity:0.75;">Compass</span>
+            </div>
+
+            <!-- Floating stat badges -->
+            <div class="circle-float-badge" style="top:12%;right:-10%;">
+              <div class="text-xs font-extrabold text-forest">26</div>
+              <div class="text-[10px] text-[#A8A29E] leading-tight">programs</div>
+            </div>
+            <div class="circle-float-badge" style="bottom:16%;left:-8%;">
+              <div class="text-xs font-extrabold text-ember">Free</div>
+              <div class="text-[10px] text-[#A8A29E] leading-tight">always</div>
+            </div>
+            <div class="circle-float-badge" style="top:48%;right:-14%;">
+              <div class="text-xs font-extrabold text-[#1C1917]">3</div>
+              <div class="text-[10px] text-[#A8A29E] leading-tight">languages</div>
+            </div>
+
+          </div>
+        </div><!-- /hero-right -->
+
+      </div><!-- /hero-layout -->
+
+      <!-- Demo section — below the fold -->
+      <div class="max-w-6xl mx-auto px-6 pb-14 w-full">
+
+        <!-- Label -->
+        <div class="flex items-center gap-4 mb-6">
           <span class="text-xs font-bold demo-label uppercase tracking-widest">Try a live demo</span>
-          <div class="h-px w-16 bg-gradient-to-l from-transparent to-[#E5DDD3]"></div>
+          <div class="h-px flex-1 bg-[#E5DDD3]"></div>
         </div>
 
-        <!-- Persona Cards — glass + 3D tilt -->
-        <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
+        <!-- Persona Cards -->
+        <div class="grid grid-cols-3 gap-4 max-w-2xl">
 
           <button onclick="App.runDemo('single_parent')" class="persona-card tilt-card group text-left">
             <div class="bar-ember h-1 w-full"></div>
@@ -220,7 +305,7 @@
               </div>
               <span class="font-bold text-sm block text-[#1C1917]">Single Parent</span>
               <span class="text-xs text-[#78716C] mt-1 block leading-snug">Maria · Lost her job · 2 kids · Oakland CA</span>
-              <div class="mt-3 pt-2.5 border-t border-white/60 flex items-center justify-between">
+              <div class="mt-3 pt-2.5 border-t border-[#F0EAE0] flex items-center justify-between">
                 <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
                 <span class="text-sm text-ember font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
               </div>
@@ -238,7 +323,7 @@
               </div>
               <span class="font-bold text-sm block text-[#1C1917]">Senior Citizen</span>
               <span class="text-xs text-[#78716C] mt-1 block leading-snug">Robert · Retired · SS income · San Antonio TX</span>
-              <div class="mt-3 pt-2.5 border-t border-white/60 flex items-center justify-between">
+              <div class="mt-3 pt-2.5 border-t border-[#F0EAE0] flex items-center justify-between">
                 <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
                 <span class="text-sm text-[#0EA5E9] font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
               </div>
@@ -256,7 +341,7 @@
               </div>
               <span class="font-bold text-sm block text-[#1C1917]">Veteran</span>
               <span class="text-xs text-[#78716C] mt-1 block leading-snug">James · Service disability · Part-time · Tampa FL</span>
-              <div class="mt-3 pt-2.5 border-t border-white/60 flex items-center justify-between">
+              <div class="mt-3 pt-2.5 border-t border-[#F0EAE0] flex items-center justify-between">
                 <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
                 <span class="text-sm text-forest font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
               </div>
@@ -265,65 +350,8 @@
 
         </div>
 
-        <!-- Divider -->
-        <div class="flex items-center gap-4 max-w-xs mx-auto mb-10">
-          <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E5DDD3] to-transparent"></div>
-          <span class="text-[#A8A29E] text-xs font-medium">or your own situation</span>
-          <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E5DDD3] to-transparent"></div>
-        </div>
+      </div><!-- /demo section -->
 
-        <!-- Voice CTA — multi-ring effect -->
-        <div class="hero-voice flex flex-col items-center gap-5 mb-10">
-          <div class="relative flex items-center justify-center" style="width:260px;height:260px;">
-            <!-- Outermost ring -->
-            <div class="voice-ring voice-ring-3"></div>
-            <!-- Mid ring -->
-            <div class="voice-ring voice-ring-2"></div>
-            <!-- Inner ring -->
-            <div class="voice-ring voice-ring-1"></div>
-            <!-- Main button -->
-            <button
-              id="btn-start-voice"
-              onclick="App.startVoice()"
-              class="voice-btn-main relative w-24 h-24 rounded-full flex items-center justify-center"
-              aria-label="Start voice conversation"
-            >
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                <line x1="12" y1="19" x2="12" y2="23"/>
-                <line x1="8" y1="23" x2="16" y2="23"/>
-              </svg>
-            </button>
-          </div>
-          <div class="text-center -mt-4">
-            <p class="text-[#57534E] text-base font-medium">
-              Speak your situation, or
-              <button onclick="App.startChat()" class="text-forest hover:text-forest-600 font-bold underline underline-offset-2 transition-colors">type it instead</button>
-            </p>
-            <p class="text-xs text-[#A8A29E] mt-1.5">Available in English, Español, and Français</p>
-          </div>
-        </div>
-
-        <!-- Language Selector -->
-        <div class="flex items-center justify-center gap-3 mb-10">
-          <span class="text-[#A8A29E] text-sm">Language:</span>
-          <select id="language-select" class="border border-[#E5DDD3] rounded-lg px-3 py-1.5 text-sm text-[#44403C] focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest" onchange="App.setLanguage(this.value)">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-          </select>
-        </div>
-
-        <!-- Nova models footer -->
-        <div class="flex items-center justify-center gap-6 text-xs text-[#A8A29E]">
-          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova 2 Lite</span>
-          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova 2 Sonic</span>
-          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova Embeddings</span>
-          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova Act</span>
-        </div>
-
-      </div>
     </section>
 
     <!-- ===== CHAT VIEW ===== -->
@@ -529,11 +557,11 @@
     marked.setOptions({ breaks: true, gfm: true });
   </script>
 
-  <script src="/static/js/api.js?v=8"></script>
-  <script src="/static/js/voice.js?v=8"></script>
-  <script src="/static/js/app.js?v=8"></script>
+  <script src="/static/js/api.js?v=9"></script>
+  <script src="/static/js/voice.js?v=9"></script>
+  <script src="/static/js/app.js?v=9"></script>
 
-  <!-- GSAP entrance + Three.js background + card tilt -->
+  <!-- GSAP entrance + card tilt -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
 
@@ -541,124 +569,18 @@
       const welcome = document.getElementById('view-welcome');
       if (welcome && !welcome.classList.contains('hidden')) {
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-        tl.from('.hero-badge',   { y: -20, opacity: 0, duration: 0.5 })
-          .from('.hero-h1',      { y: 32,  opacity: 0, duration: 0.7 }, '-=0.25')
-          .from('.hero-p',       { y: 18,  opacity: 0, duration: 0.5 }, '-=0.35')
-          .from('.hero-stats > *', { y: 24, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.3')
-          .from('.persona-card', { y: 32,  opacity: 0, duration: 0.5, stagger: 0.12 }, '-=0.2')
-          .from('.hero-voice',   { scale: 0.88, opacity: 0, duration: 0.5 }, '-=0.2');
+        tl.from('.hero-badge',         { y: -20, opacity: 0, duration: 0.5 })
+          .from('.hero-h1',            { y: 32,  opacity: 0, duration: 0.7 }, '-=0.25')
+          .from('.hero-p',             { y: 18,  opacity: 0, duration: 0.5 }, '-=0.35')
+          .from('.hero-stats-strip > *', { y: 20, opacity: 0, duration: 0.45, stagger: 0.08 }, '-=0.3')
+          .from('.hero-cta-primary, .hero-cta-secondary', { y: 16, opacity: 0, duration: 0.4, stagger: 0.1 }, '-=0.2')
+          .from('.hero-right',         { x: 30,  opacity: 0, duration: 0.7, ease: 'power2.out' }, '-=0.5')
+          .from('.persona-card',       { y: 28,  opacity: 0, duration: 0.4, stagger: 0.1 }, '-=0.2');
       }
-
-      // ── Three.js 3D background ───────────────────────────────────────────
-      initCompassBackground();
 
       // ── Card tilt effect ─────────────────────────────────────────────────
       initCardTilt();
     });
-
-    function initCompassBackground() {
-      if (typeof THREE === 'undefined') return;
-      const canvas = document.getElementById('bg-canvas');
-      if (!canvas) return;
-
-      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 38;
-
-      // Lighting — warm green key, ember fill
-      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-      const keyLight = new THREE.DirectionalLight(0x4ade80, 1.8);
-      keyLight.position.set(-6, 10, 8);
-      scene.add(keyLight);
-      const fillLight = new THREE.DirectionalLight(0xfb923c, 1.0);
-      fillLight.position.set(8, -4, 6);
-      scene.add(fillLight);
-      const rimLight = new THREE.DirectionalLight(0x86efac, 0.6);
-      rimLight.position.set(0, 0, 10);
-      scene.add(rimLight);
-
-      // ── Themed shapes representing the Compass mission ────────────────────
-      // Compass rings  → navigation / finding your way
-      // Flat cylinders → coins / financial benefits
-      // Thin boxes     → documents / applications / paperwork
-      // Cones          → compass needle / direction / guidance
-      const shapeDefs = [
-        // COMPASS RINGS — large background anchors, forest green
-        { g: new THREE.TorusGeometry(4.0, 0.28, 10, 40), c: 0x15803d, o: 0.18, x: -19, y:  8, z: -10 },
-        { g: new THREE.TorusGeometry(2.8, 0.22, 10, 36), c: 0x166534, o: 0.22, x:  16, y: -6, z:  -7 },
-        { g: new THREE.TorusGeometry(1.8, 0.16, 10, 32), c: 0x22c55e, o: 0.28, x:  -4, y: 14, z:  -3 },
-        { g: new THREE.TorusGeometry(1.2, 0.12, 10, 28), c: 0x4ade80, o: 0.32, x:   6, y: -5, z:   0 },
-        // Smaller ring accent, ember
-        { g: new THREE.TorusGeometry(0.8, 0.09, 8, 24),  c: 0xea580c, o: 0.30, x:  20, y: -9, z:   4 },
-        { g: new THREE.TorusGeometry(0.6, 0.08, 8, 20),  c: 0xfb923c, o: 0.35, x: -16, y: -2, z:   3 },
-
-        // COMPASS NEEDLES — cones, ember/amber, pointing upward
-        { g: new THREE.ConeGeometry(0.42, 2.4, 7), c: 0xea580c, o: 0.32, x:  14, y: 11, z: -2 },
-        { g: new THREE.ConeGeometry(0.30, 1.8, 7), c: 0xfb923c, o: 0.35, x: -13, y: -9, z: -1 },
-        { g: new THREE.ConeGeometry(0.22, 1.3, 7), c: 0xf59e0b, o: 0.38, x:  -8, y: 13, z:  1 },
-
-        // COINS — flat cylinders, gold tones (represent monetary benefits)
-        { g: new THREE.CylinderGeometry(1.5, 1.5, 0.22, 28), c: 0xf59e0b, o: 0.30, x:  -3, y: -14, z: -5 },
-        { g: new THREE.CylinderGeometry(1.1, 1.1, 0.18, 24), c: 0xfbbf24, o: 0.34, x:  21, y:   3, z:  2 },
-        { g: new THREE.CylinderGeometry(0.7, 0.7, 0.14, 20), c: 0xfcd34d, o: 0.38, x:  -7, y: -18, z:  1 },
-
-        // DOCUMENTS — thin boxes (represent forms, applications, paperwork)
-        { g: new THREE.BoxGeometry(2.4, 3.0, 0.14), c: 0x16a34a, o: 0.24, x:  10, y: -12, z: -6 },
-        { g: new THREE.BoxGeometry(1.7, 2.2, 0.11), c: 0x86efac, o: 0.30, x: -22, y:   1, z:  3 },
-        { g: new THREE.BoxGeometry(1.2, 1.6, 0.09), c: 0xbbf7d0, o: 0.35, x:   4, y:  16, z: -1 },
-      ];
-
-      const shapes = shapeDefs.map(def => {
-        const mat = new THREE.MeshPhongMaterial({
-          color: def.c, transparent: true, opacity: def.o, shininess: 70,
-        });
-        const mesh = new THREE.Mesh(def.g, mat);
-        mesh.position.set(def.x, def.y, def.z);
-        mesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
-        mesh.userData = {
-          rs: (Math.random() - 0.5) * 0.005 + 0.0015,   // rotation speed
-          da: 0.6 + Math.random() * 1.4,                 // drift amplitude
-          df: 0.25 + Math.random() * 0.45,               // drift frequency
-          dp: Math.random() * Math.PI * 2,               // drift phase
-          by: def.y,                                     // base Y position
-        };
-        scene.add(mesh);
-        return mesh;
-      });
-
-      // Mouse parallax
-      let mx = 0, my = 0;
-      document.addEventListener('mousemove', e => {
-        mx = (e.clientX / window.innerWidth  - 0.5);
-        my = (e.clientY / window.innerHeight - 0.5);
-      });
-
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
-
-      let t = 0;
-      (function animate() {
-        requestAnimationFrame(animate);
-        t += 0.007;
-        shapes.forEach(s => {
-          const u = s.userData;
-          s.rotation.x += u.rs;
-          s.rotation.y += u.rs * 0.62;
-          s.position.y = u.by + Math.sin(t * u.df + u.dp) * u.da;
-        });
-        // Smooth camera parallax
-        camera.position.x += (mx * 5 - camera.position.x) * 0.035;
-        camera.position.y += (-my * 3.5 - camera.position.y) * 0.035;
-        renderer.render(scene, camera);
-      })();
-    }
 
     function initCardTilt() {
       document.querySelectorAll('.tilt-card').forEach(card => {
