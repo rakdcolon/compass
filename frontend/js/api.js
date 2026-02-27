@@ -107,6 +107,58 @@ const API = (() => {
   }
 
   /**
+   * Stream a chat message via SSE (text/event-stream).
+   * @param {string} message - User's text message
+   * @param {string} sessionId - Session ID
+   * @param {function} onDelta - Called with each text delta string
+   * @param {function} onDone  - Called once with {tool_calls, session_id, session_data}
+   * @returns {Promise<void>}
+   */
+  async function chatStream(message, sessionId, onDelta, onDone) {
+    const res = await fetch(`${BASE_URL}/api/chat/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, session_id: sessionId, language: App.getLanguage() }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE events are separated by double newlines
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop(); // keep incomplete last chunk
+
+      for (const chunk of lines) {
+        const line = chunk.trim();
+        if (!line.startsWith('data:')) continue;
+        const jsonStr = line.slice(5).trim();
+        if (!jsonStr) continue;
+        try {
+          const payload = JSON.parse(jsonStr);
+          if (payload.done) {
+            onDone(payload);
+          } else if (payload.delta !== undefined) {
+            onDelta(payload.delta);
+          }
+        } catch (e) {
+          // ignore parse errors in stream
+        }
+      }
+    }
+  }
+
+  /**
    * Semantic search for benefit programs using Nova Embeddings.
    * @param {string} text - Description of situation
    */
@@ -114,5 +166,5 @@ const API = (() => {
     return post('/api/embedding/search', { text });
   }
 
-  return { chat, uploadDocument, getSession, runDemo, navigatePortal, semanticSearch };
+  return { chat, chatStream, uploadDocument, getSession, runDemo, navigatePortal, semanticSearch };
 })();

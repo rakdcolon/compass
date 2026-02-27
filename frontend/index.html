@@ -320,12 +320,21 @@
 
             <!-- Eligible Programs -->
             <div id="programs-card" class="hidden">
-              <h3 class="text-xs font-bold text-[#44403C] mb-2 flex items-center gap-2">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>
-                </svg>
-                Programs You May Qualify For
-              </h3>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-bold text-[#44403C] flex items-center gap-2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>
+                  </svg>
+                  Programs You May Qualify For
+                </h3>
+                <div class="flex items-center gap-2">
+                  <span id="programs-progress" class="text-xs text-[#78716C] font-medium"></span>
+                  <button onclick="App.downloadReport()"
+                          class="text-xs text-[#15803D] hover:text-[#166534] font-semibold flex items-center gap-1 transition-colors border border-[#BBF7D0] bg-[#F0FDF4] px-2 py-0.5 rounded-full">
+                    ↓ Save Summary
+                  </button>
+                </div>
+              </div>
               <div id="programs-list" class="space-y-2"></div>
             </div>
 
@@ -404,9 +413,15 @@
   <!-- Toast -->
   <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
 
-  <script src="/static/js/api.js?v=4"></script>
-  <script src="/static/js/voice.js?v=4"></script>
-  <script src="/static/js/app.js?v=4"></script>
+  <!-- marked.js — Markdown parser for assistant responses -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <script>
+    marked.setOptions({ breaks: true, gfm: true });
+  </script>
+
+  <script src="/static/js/api.js?v=6"></script>
+  <script src="/static/js/voice.js?v=6"></script>
+  <script src="/static/js/app.js?v=6"></script>
 
   <!-- GSAP welcome page entrance animation -->
   <script>

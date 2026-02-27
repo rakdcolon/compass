@@ -7,6 +7,7 @@ import json
 import logging
 import re
 import uuid
+from collections.abc import AsyncGenerator
 from typing import Any, Optional
 
 from backend.services.nova_lite import NovaLiteService
@@ -276,6 +277,92 @@ class CompassOrchestrator:
                 "has_results": bool(session.get("eligible_programs")),
             },
         }
+
+    async def chat_stream(
+        self,
+        session_id: str,
+        user_message: str,
+    ) -> AsyncGenerator[str, None]:
+        """
+        Process a user message and stream Nova Lite's response as SSE events.
+        Tool calls run silently between stream turns; the final text response
+        is streamed token-by-token using Bedrock's converse_stream API.
+
+        Yields SSE strings: 'data: {...}\\n\\n'
+        Final event: 'data: {"done": true, "tool_calls": [...], "session_data": {...}}\\n\\n'
+        """
+        session = self.get_or_create_session(session_id)
+        session["messages"].append({"role": "user", "content": [{"text": user_message}]})
+        messages = list(session["messages"])
+        tool_calls_made: list[dict] = []
+        full_response_text = ""
+
+        for _ in range(10):
+            done_payload: Optional[dict] = None
+            iteration_text: list[str] = []
+
+            # Use real Bedrock streaming for every turn
+            for event_type, payload in self.nova_lite.converse_stream(
+                messages=messages,
+                system_prompt=COMPASS_SYSTEM_PROMPT,
+                tools=TOOL_DEFINITIONS,
+            ):
+                if event_type == "text":
+                    iteration_text.append(payload)
+                    # Yield text deltas immediately to the client.
+                    # Tool-use turns rarely emit text; end_turn turns emit the full answer.
+                    yield f"data: {json.dumps({'delta': payload})}\n\n"
+                elif event_type == "done":
+                    done_payload = payload
+
+            if not done_payload:
+                break
+
+            stop_reason = done_payload["stop_reason"]
+
+            if stop_reason == "end_turn":
+                raw_text = "".join(iteration_text)
+                full_response_text = re.sub(
+                    r"<thinking>.*?</thinking>", "", raw_text, flags=re.DOTALL
+                ).strip()
+                break
+
+            elif stop_reason == "tool_use":
+                # Append model message and execute tools silently
+                messages.append(done_payload["raw_message"])
+                tool_results = []
+                for tc in done_payload["tool_calls"]:
+                    tool_calls_made.append({"name": tc["name"], "input": tc["input"]})
+                    try:
+                        output = await self._execute_tool(session, tc["name"], tc["input"])
+                    except Exception as e:
+                        logger.error("Tool %s failed: %s", tc["name"], e)
+                        output = {"error": str(e)}
+                    tool_results.append({
+                        "toolResult": {
+                            "toolUseId": tc["tool_use_id"],
+                            "content": [{"json": output}],
+                        }
+                    })
+                messages.append({"role": "user", "content": tool_results})
+            else:
+                break
+
+        # Store final assistant message in session
+        session["messages"].append({
+            "role": "assistant",
+            "content": [{"text": full_response_text}],
+        })
+
+        # Send final SSE event with session metadata and clean response text
+        session_data = {
+            "eligible_programs": session.get("eligible_programs", []),
+            "local_resources": session.get("local_resources", []),
+            "action_plan": session.get("action_plan"),
+            "document_analysis": session.get("document_analysis"),
+            "has_results": bool(session.get("eligible_programs")),
+        }
+        yield f"data: {json.dumps({'done': True, 'response': full_response_text, 'tool_calls': tool_calls_made, 'session_id': session['id'], 'session_data': session_data})}\n\n"
 
     async def _run_agent_loop(self, session: dict) -> tuple[str, list]:
         """

@@ -15,7 +15,7 @@ from typing import Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -191,6 +191,29 @@ async def chat(request: ChatRequest):
     except Exception as e:
         logger.error("Chat error: %s", e)
         raise HTTPException(status_code=500, detail=f"Chat processing failed: {str(e)}")
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """
+    Streaming chat endpoint. Streams Nova 2 Lite's response token-by-token as SSE events.
+    Tool calls run silently; only the final text is streamed.
+
+    SSE format:
+      data: {"delta": "token "}\n\n   — text delta
+      data: {"done": true, "tool_calls": [...], "session_id": "...", "session_data": {...}}\n\n
+    """
+    session_id = request.session_id or str(uuid.uuid4())
+
+    return StreamingResponse(
+        orchestrator.chat_stream(session_id=session_id, user_message=request.message),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @app.post("/api/demo/{persona}")

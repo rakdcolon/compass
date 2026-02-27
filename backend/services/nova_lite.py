@@ -5,7 +5,7 @@ Handles text conversations, vision analysis, and tool use via the Bedrock Conver
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any, Generator, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -93,6 +93,106 @@ class NovaLiteService:
             "raw_message": output_message,
             "usage": response.get("usage", {}),
         }
+
+    def converse_stream(
+        self,
+        messages: list[dict],
+        system_prompt: str,
+        tools: Optional[list[dict]] = None,
+        max_tokens: int = NOVA_LITE_MAX_TOKENS,
+        temperature: float = NOVA_LITE_TEMPERATURE,
+    ) -> Generator[tuple, None, None]:
+        """
+        Stream a conversation response from Nova Lite using Bedrock streaming.
+
+        Yields tuples:
+          ("text", delta_str)   — text content delta as the model generates
+          ("done", metadata)    — final event with stop_reason, tool_calls, raw_message
+
+        Args:
+            messages: Conversation messages in Bedrock format
+            system_prompt: System prompt
+            tools: Optional tool specifications
+        """
+        kwargs: dict[str, Any] = {
+            "modelId": self.model_id,
+            "messages": messages,
+            "system": [{"text": system_prompt}],
+            "inferenceConfig": {
+                "maxTokens": max_tokens,
+                "temperature": temperature,
+                "topP": NOVA_LITE_TOP_P,
+            },
+        }
+        if tools:
+            kwargs["toolConfig"] = {"tools": tools}
+
+        try:
+            response = self.client.converse_stream(**kwargs)
+        except ClientError as e:
+            logger.error("Nova Lite converse_stream error: %s", e)
+            raise
+
+        content_blocks: list[dict] = []
+        current_block: Optional[dict] = None
+        current_tool_input = ""
+        stop_reason = "end_turn"
+
+        for event in response.get("stream", []):
+            if "contentBlockStart" in event:
+                start = event["contentBlockStart"]["start"]
+                if "text" in start or not start:
+                    current_block = {"text": ""}
+                elif "toolUse" in start:
+                    current_block = {
+                        "toolUse": {
+                            "toolUseId": start["toolUse"]["toolUseId"],
+                            "name": start["toolUse"]["name"],
+                            "input": {},
+                        }
+                    }
+                    current_tool_input = ""
+
+            elif "contentBlockDelta" in event:
+                delta = event["contentBlockDelta"]["delta"]
+                if "text" in delta and current_block and "text" in current_block:
+                    current_block["text"] += delta["text"]
+                    yield ("text", delta["text"])
+                elif "toolUse" in delta:
+                    current_tool_input += delta["toolUse"].get("input", "")
+
+            elif "contentBlockStop" in event:
+                if current_block is not None:
+                    if "toolUse" in current_block:
+                        try:
+                            current_block["toolUse"]["input"] = (
+                                json.loads(current_tool_input) if current_tool_input else {}
+                            )
+                        except json.JSONDecodeError:
+                            current_block["toolUse"]["input"] = {}
+                    content_blocks.append(current_block)
+                    current_block = None
+                    current_tool_input = ""
+
+            elif "messageStop" in event:
+                stop_reason = event["messageStop"].get("stopReason", "end_turn")
+
+        # Build tool calls list from content blocks
+        tool_calls = [
+            {
+                "tool_use_id": b["toolUse"]["toolUseId"],
+                "name": b["toolUse"]["name"],
+                "input": b["toolUse"]["input"],
+            }
+            for b in content_blocks
+            if "toolUse" in b
+        ]
+
+        yield ("done", {
+            "stop_reason": stop_reason,
+            "tool_calls": tool_calls,
+            "raw_message": {"role": "assistant", "content": content_blocks},
+        })
 
     def analyze_image(
         self,

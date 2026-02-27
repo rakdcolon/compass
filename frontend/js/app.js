@@ -9,6 +9,8 @@ const App = (() => {
   let isLoading = false;
   let isDemoMode = false;
   let activeModel = null;
+  let _lastSessionData = null;
+  const _programDataCache = {};
 
   function generateSessionId() {
     return 'sess_' + Math.random().toString(36).slice(2, 11);
@@ -187,7 +189,7 @@ const App = (() => {
     document.getElementById('chat-input')?.focus();
   }
 
-  // ===== Send Text Message =====
+  // ===== Send Text Message (streaming) =====
 
   async function sendMessage() {
     const input = document.getElementById('chat-input');
@@ -196,32 +198,77 @@ const App = (() => {
 
     input.value = '';
     addMessage('user', message);
-    showTypingIndicator();
     setActiveModel('lite');
-    setLoading(true, 'Nova 2 Lite is analyzing your situation...');
+    isLoading = true;
+
+    // Create a live streaming bubble
+    const container = document.getElementById('chat-messages');
+    const streamDiv = document.createElement('div');
+    streamDiv.className = 'message-animate';
+    streamDiv.id = 'streaming-msg';
+    streamDiv.innerHTML = `
+      <div class="flex gap-2 items-start">
+        <div class="w-7 h-7 rounded-full bg-[#15803D] flex-shrink-0 flex items-center justify-center mt-0.5">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="bubble-assistant text-sm leading-relaxed" id="streaming-bubble">
+            <span class="typing-dot"></span><span class="typing-dot" style="animation-delay:.2s"></span><span class="typing-dot" style="animation-delay:.4s"></span>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(streamDiv);
+    container.scrollTop = container.scrollHeight;
+
+    let rawText = '';
+    let toolCallsMade = [];
 
     try {
-      const result = await API.chat(message, sessionId);
-      sessionId = result.session_id;
+      await API.chatStream(
+        message,
+        sessionId,
+        // onDelta — append raw text to bubble
+        (delta) => {
+          rawText += delta;
+          const bubble = document.getElementById('streaming-bubble');
+          if (bubble) {
+            bubble.textContent = rawText; // raw text during streaming
+            container.scrollTop = container.scrollHeight;
+          }
+        },
+        // onDone — finalize bubble with markdown + update results panel
+        (payload) => {
+          sessionId = payload.session_id || sessionId;
+          toolCallsMade = payload.tool_calls || [];
 
-      removeTypingIndicator();
-      addMessage('assistant', result.response, { toolCalls: result.tool_calls_made });
+          // Replace streaming bubble with fully rendered markdown
+          // Use payload.response (server-cleaned) if available, else accumulated rawText
+          const finalText = payload.response || rawText;
+          const streamMsg = document.getElementById('streaming-msg');
+          if (streamMsg) {
+            streamMsg.remove();
+          }
+          addMessage('assistant', finalText, { toolCalls: toolCallsMade });
 
-      if (result.tool_calls_made?.length > 0) {
-        const names = result.tool_calls_made.map(t => formatToolName(t.name)).join(' → ');
-        addMessage('system', `Nova 2 Lite used: ${names}`);
-      }
+          if (toolCallsMade.length > 0) {
+            const names = toolCallsMade.map(t => formatToolName(t.name)).join(' → ');
+            addMessage('system', `Nova 2 Lite used: ${names}`);
+          }
 
-      if (result.session_data?.has_results) {
-        updateResultsPanel(result.session_data);
-      }
-
+          if (payload.session_data?.has_results) {
+            updateResultsPanel(payload.session_data);
+          }
+        },
+      );
     } catch (err) {
-      removeTypingIndicator();
+      const streamMsg = document.getElementById('streaming-msg');
+      if (streamMsg) streamMsg.remove();
       addMessage('system', `Error: ${err.message}`);
       showToast(err.message, 'error');
     } finally {
-      setLoading(false);
+      isLoading = false;
       setActiveModel(null);
     }
   }
@@ -370,6 +417,7 @@ const App = (() => {
   // ===== Results Panel =====
 
   function updateResultsPanel(sessionData) {
+    _lastSessionData = sessionData;
     document.getElementById('results-placeholder')?.classList.add('hidden');
 
     if (sessionData.eligible_programs?.length > 0) {
@@ -405,6 +453,139 @@ const App = (() => {
     return Math.round(monthlyTotal * 12);
   }
 
+  // ===== Application Status Tracker =====
+
+  const STATUS_LABELS = {
+    not_started: { label: 'Track Status', style: 'text-[#78716C] bg-[#F5F5F4] border border-[#E7E5E4]' },
+    applied:     { label: '✓ Applied',    style: 'text-[#92400E] bg-[#FFFBEB] border border-[#FDE68A]' },
+    approved:    { label: '★ Approved',   style: 'text-[#166534] bg-[#F0FDF4] border border-[#BBF7D0]' },
+    denied:      { label: '✗ Denied',     style: 'text-[#991B1B] bg-[#FEF2F2] border border-[#FECACA]' },
+  };
+
+  function getStatus(programId) {
+    return localStorage.getItem(`compass_status_${programId}`) || 'not_started';
+  }
+
+  function setStatus(programId, status) {
+    localStorage.setItem(`compass_status_${programId}`, status);
+    const badge = document.getElementById(`status-badge-${programId}`);
+    if (badge) {
+      const cfg = STATUS_LABELS[status] || STATUS_LABELS.not_started;
+      badge.className = `text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer transition-all flex-shrink-0 ${cfg.style}`;
+      badge.textContent = cfg.label;
+    }
+    _updateProgressCounter();
+  }
+
+  function _cycleStatus(programId) {
+    const order = ['not_started', 'applied', 'approved', 'denied'];
+    const current = getStatus(programId);
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    setStatus(programId, next);
+  }
+
+  function _updateProgressCounter() {
+    const counter = document.getElementById('programs-progress');
+    if (!counter) return;
+    const allBadges = document.querySelectorAll('[id^="status-badge-"]');
+    let tracked = 0;
+    allBadges.forEach(badge => {
+      const pid = badge.id.replace('status-badge-', '');
+      if (getStatus(pid) !== 'not_started') tracked++;
+    });
+    counter.textContent = tracked > 0 ? `${tracked} of ${allBadges.length} tracked` : '';
+  }
+
+  // ===== Expandable Program Cards =====
+
+  function _toggleExpand(programId) {
+    const panel = document.getElementById(`expand-${programId}`);
+    const btn   = document.getElementById(`expand-btn-${programId}`);
+    if (!panel) return;
+    const isOpen = panel.classList.contains('open');
+    // Collapse all first
+    document.querySelectorAll('.expand-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('[id^="expand-btn-"]').forEach(b => { b.textContent = 'Details ↓'; });
+    if (!isOpen) {
+      panel.classList.add('open');
+      if (btn) btn.textContent = 'Details ↑';
+    }
+  }
+
+  // ===== Printable Benefits Report =====
+
+  function downloadReport() {
+    if (!_lastSessionData) {
+      showToast('No results yet — run a demo or chat first.', 'warning');
+      return;
+    }
+    const data = _lastSessionData;
+    const programs = data.eligible_programs || [];
+    const resources = data.local_resources || [];
+    const plan = data.action_plan?.all_steps || [];
+    const totalAnnual = calculateTotalValue(programs);
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const esc = str => String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    const programRows = programs.map(p => `
+      <tr>
+        <td><strong>${esc(p.short_name || p.name)}</strong></td>
+        <td style="text-transform:capitalize">${esc(p.category?.replace(/_/g,' '))}</td>
+        <td><span class="badge badge-${(p.likelihood||'medium').toLowerCase()}">${esc(p.likelihood)}</span></td>
+        <td>${esc(p.estimated_value)}</td>
+        <td><a href="${esc(p.apply_url)}" target="_blank">Apply →</a></td>
+      </tr>`).join('');
+
+    const resourceItems = resources.map(r =>
+      `<li><strong>${esc(r.name)}</strong>${r.phone ? ' · ' + esc(r.phone) : ''}${r.website ? ' · <a href="' + esc(r.website) + '" target="_blank">' + esc(r.website) + '</a>' : ''}</li>`
+    ).join('');
+
+    const planItems = plan.map(s =>
+      `<li><strong>${esc(s.title)}</strong>${s.action ? ' — ' + esc(s.action) : ''}</li>`
+    ).join('');
+
+    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>Compass Benefits Summary — ${date}</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1C1917;background:#fff;padding:32px 40px;max-width:800px;margin:0 auto}
+.header{display:flex;align-items:center;gap:12px;border-bottom:2px solid #15803D;padding-bottom:16px;margin-bottom:24px}
+.logo{width:40px;height:40px;background:#15803D;border-radius:10px;color:#fff;font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center}
+h1{font-size:22px;font-weight:800;color:#14532D;margin:0}
+.date{font-size:13px;color:#78716C;margin:2px 0 0}
+.value-box{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border:1px solid #BBF7D0;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px}
+.value-box .amount{font-size:36px;font-weight:900;color:#14532D}
+.value-box .sub{font-size:14px;color:#57534E;margin-top:4px}
+h2{font-size:15px;font-weight:700;color:#44403C;border-bottom:1px solid #E5DDD3;padding-bottom:6px;margin:24px 0 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#F9F5EE;color:#57534E;font-weight:600;border-bottom:1px solid #E5DDD3}
+td{padding:8px 10px;border-bottom:1px solid #F0EAE0;vertical-align:top}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-high{background:#F0FDF4;color:#166534}.badge-medium{background:#FFFBEB;color:#92400E}.badge-low{background:#F5F5F4;color:#78716C}
+a{color:#15803D}
+ul,ol{padding-left:20px;font-size:13px}li{margin-bottom:6px}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #E5DDD3;font-size:11px;color:#A8A29E;text-align:center}
+@media print{body{padding:16px}}
+</style></head><body>
+<div class="header"><div class="logo">C</div><div><h1>Compass Benefits Summary</h1><div class="date">Generated ${date}</div></div></div>
+${totalAnnual > 0 ? `<div class="value-box"><div class="amount">Up to $${totalAnnual.toLocaleString()}/year</div><div class="sub">Across ${programs.length} program${programs.length !== 1 ? 's' : ''} you may qualify for</div></div>` : ''}
+<h2>Programs You May Qualify For</h2>
+${programs.length > 0 ? `<table><thead><tr><th>Program</th><th>Category</th><th>Likelihood</th><th>Est. Value</th><th>Apply</th></tr></thead><tbody>${programRows}</tbody></table>` : '<p style="color:#78716C;font-size:13px">No programs found yet.</p>'}
+${resources.length > 0 ? `<h2>Local Resources Near You</h2><ul>${resourceItems}</ul>` : ''}
+${plan.length > 0 ? `<h2>Your Action Plan</h2><ol>${planItems}</ol>` : ''}
+<div class="footer">Generated by Compass AI Benefits Navigator &middot; ${date}</div>
+<script>window.print();<\/script>
+</body></html>`;
+
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    } else {
+      showToast('Allow pop-ups for this site to download the report.', 'warning');
+    }
+  }
+
   function renderPrograms(programs) {
     const card = document.getElementById('programs-card');
     const list = document.getElementById('programs-list');
@@ -433,29 +614,58 @@ const App = (() => {
     programs.slice(0, 7).forEach(program => {
       const likelihood = (program.likelihood || 'medium').toLowerCase();
       const emoji = categoryEmojis[program.category] || '✓';
+      const pid = program.id;
+      const currentStatus = getStatus(pid);
+      const statusCfg = STATUS_LABELS[currentStatus] || STATUS_LABELS.not_started;
+
+      // Store program data for potential use
+      _programDataCache[pid] = program;
+
+      // Build expand detail content
+      const detailParts = [];
+      if (program.reason) detailParts.push(`<p class="text-xs text-[#57534E]">${escapeHtml(program.reason)}</p>`);
+      if (program.how_to_apply) detailParts.push(`<p class="text-xs text-[#57534E] mt-1"><span class="font-semibold">How to apply:</span> ${escapeHtml(program.how_to_apply)}</p>`);
+      if (program.timeline) detailParts.push(`<p class="text-xs text-[#78716C] mt-1">⏱ ${escapeHtml(program.timeline)}</p>`);
+
       const div = document.createElement('div');
       div.className = `program-card ${likelihood}`;
+      div.id = `pcard-${pid}`;
       div.innerHTML = `
         <div class="flex items-start justify-between gap-2 mb-1">
           <div class="flex items-center gap-1.5 min-w-0">
             <span>${emoji}</span>
-            <span class="text-sm font-medium text-white truncate">${escapeHtml(program.short_name || program.name)}</span>
+            <span class="text-sm font-semibold text-[#1C1917] truncate">${escapeHtml(program.short_name || program.name)}</span>
           </div>
-          <span class="text-xs px-1.5 py-0.5 rounded likelihood-${likelihood} font-medium flex-shrink-0">${likelihood.charAt(0).toUpperCase()+likelihood.slice(1)}</span>
+          <span id="status-badge-${pid}" onclick="App._cycleStatus('${pid}')"
+                class="text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer transition-all flex-shrink-0 ${statusCfg.style}">
+            ${statusCfg.label}
+          </span>
         </div>
-        <div class="text-xs text-slate-400 mb-2 line-clamp-1">${escapeHtml(program.estimated_value || '')}</div>
-        <div class="flex gap-2 flex-wrap">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-xs text-[#78716C] line-clamp-1 flex-1">${escapeHtml(program.estimated_value || '')}</div>
+          <button id="expand-btn-${pid}" onclick="App._toggleExpand('${pid}')"
+                  class="text-xs text-[#78716C] hover:text-[#15803D] font-medium ml-2 flex-shrink-0 transition-colors">
+            Details ↓
+          </button>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center">
           <a href="${escapeHtml(program.apply_url || '#')}" target="_blank" rel="noopener"
-             class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+             class="text-xs text-[#15803D] hover:text-[#166534] font-semibold flex items-center gap-1 transition-colors">
             Apply Now ↗
           </a>
-          <button onclick="App.navigatePortal('${program.id}','${escapeHtml(program.short_name||program.name)}')"
-                  class="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1 ml-auto transition-colors">
-            <span class="nova-act-badge">Nova Act</span>
+          <button onclick="App.navigatePortal('${pid}','${escapeHtml(program.short_name||program.name)}')"
+                  class="text-xs flex items-center gap-1 ml-auto transition-colors">
+            <span class="nova-act-badge">Nova Act →</span>
           </button>
+        </div>
+        <div id="expand-${pid}" class="expand-panel">
+          <div class="pt-2 border-t border-[#F0EAE0] mt-2 space-y-1">
+            ${detailParts.length > 0 ? detailParts.join('') : '<p class="text-xs text-[#A8A29E]">Visit apply link for full details.</p>'}
+          </div>
         </div>`;
       list.appendChild(div);
     });
+    _updateProgressCounter();
   }
 
   function renderResources(resources) {
@@ -480,9 +690,9 @@ const App = (() => {
         <div class="flex items-start gap-2">
           <span>${emoji}</span>
           <div class="flex-1 min-w-0">
-            <div class="text-xs font-medium text-white truncate">${escapeHtml(r.name)}</div>
-            <div class="text-xs text-slate-400">${escapeHtml(r.phone || '')}</div>
-            ${r.website ? `<a href="${escapeHtml(r.website)}" target="_blank" class="text-xs text-blue-400 hover:text-blue-300">Visit →</a>` : ''}
+            <div class="text-xs font-semibold text-[#1C1917] truncate">${escapeHtml(r.name)}</div>
+            <div class="text-xs text-[#78716C]">${escapeHtml(r.phone || '')}</div>
+            ${r.website ? `<a href="${escapeHtml(r.website)}" target="_blank" class="text-xs text-[#15803D] hover:text-[#166534] font-semibold">Visit →</a>` : ''}
           </div>
         </div>`;
       list.appendChild(div);
@@ -503,8 +713,8 @@ const App = (() => {
       div.innerHTML = `
         <div class="action-step-number">${step.step}</div>
         <div class="flex-1 min-w-0">
-          <div class="text-xs font-semibold text-white">${escapeHtml(step.title)}</div>
-          ${step.action ? `<div class="text-xs text-blue-400 mt-0.5">${escapeHtml(step.action)}</div>` : ''}
+          <div class="text-xs font-semibold text-[#1C1917]">${escapeHtml(step.title)}</div>
+          ${step.action ? `<div class="text-xs text-[#57534E] mt-0.5">${escapeHtml(step.action)}</div>` : ''}
         </div>`;
       steps.appendChild(div);
     });
@@ -519,7 +729,7 @@ const App = (() => {
     if (analysis.annual_income_estimate) items.push(`Est. income: $${Number(analysis.annual_income_estimate).toLocaleString()}/yr`);
     if (fields.employer_name) items.push(`Employer: ${fields.employer_name}`);
     if (analysis.confidence) items.push(`Confidence: ${analysis.confidence}`);
-    div.innerHTML = items.map(i => `<div class="flex items-center gap-1"><span class="text-green-400">✓</span>${escapeHtml(i)}</div>`).join('');
+    div.innerHTML = items.map(i => `<div class="flex items-center gap-1"><span class="text-[#15803D] font-bold">✓</span><span class="text-[#57534E]">${escapeHtml(i)}</span></div>`).join('');
   }
 
   // ===== Agent Reasoning Trace =====
@@ -598,7 +808,7 @@ const App = (() => {
       const msgEl = document.createElement('div');
       msgEl.className = 'flex gap-2 items-start';
       msgEl.innerHTML = `
-        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex-shrink-0 flex items-center justify-center mt-0.5">
+        <div class="w-7 h-7 rounded-full bg-[#15803D] flex-shrink-0 flex items-center justify-center mt-0.5">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
           </svg>
@@ -634,7 +844,7 @@ const App = (() => {
     div.id = 'typing-indicator';
     div.innerHTML = `
       <div class="flex gap-2 items-start">
-        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex-shrink-0 flex items-center justify-center">
+        <div class="w-7 h-7 rounded-full bg-[#15803D] flex-shrink-0 flex items-center justify-center">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
           </svg>
@@ -663,8 +873,10 @@ const App = (() => {
     const container = document.getElementById('toast-container');
     if (!container) return;
     const colors = {
-      info:'text-blue-300 border-blue-700/50', success:'text-green-300 border-green-700/50',
-      error:'text-red-300 border-red-700/50', warning:'text-yellow-300 border-yellow-700/50',
+      info:    'text-[#1D4ED8] border-[#BFDBFE]',
+      success: 'text-[#166534] border-[#DCFCE7]',
+      error:   'text-[#B91C1C] border-[#FEE2E2]',
+      warning: 'text-[#92400E] border-[#FEF3C7]',
     };
     const toast = document.createElement('div');
     toast.className = `toast ${colors[type] || colors.info}`;
@@ -698,8 +910,14 @@ const App = (() => {
   }
 
   function formatAssistantText(text) {
+    if (typeof marked !== 'undefined') {
+      return marked.parse(text);
+    }
+    // Fallback if marked.js didn't load
     return escapeHtml(text)
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/### (.*?)(\n|$)/g, '<strong class="text-sm block mt-2 mb-1">$1</strong>')
+      .replace(/## (.*?)(\n|$)/g, '<strong class="text-sm block mt-2 mb-1">$1</strong>')
       .replace(/\n\n/g, '</p><p class="mt-2">')
       .replace(/\n/g, '<br/>');
   }
@@ -717,5 +935,6 @@ const App = (() => {
     startVoice, startChat, sendMessage, uploadDocument, uploadSample,
     navigatePortal, runDemo, goHome, getSessionId, getLanguage,
     setLanguage, setActiveModel, addMessage, showToast,
+    downloadReport, _cycleStatus, _toggleExpand,
   };
 })();
