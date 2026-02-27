@@ -9,8 +9,6 @@ pydantic==2.10.3
 httpx==0.28.1
 Pillow==11.0.0
 numpy==2.2.0
-nova-act==0.2.0
 aiosqlite>=0.20.0
-pytest>=8.0.0
-pytest-asyncio>=0.24.0
-pytest-cov>=6.0.0
+# nova-act is excluded — requires Playwright browsers (~500MB)
+# Set NOVA_ACT_ENABLED=false to disable gracefully

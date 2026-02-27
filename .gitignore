@@ -47,5 +47,14 @@ frontend/static/samples/
 .nova_act_cache/
 nova_act_sessions/
 
+# SQLite database (created at runtime)
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Coverage reports
+coverage.xml
+
 # Jupyter
 .ipynb_checkpoints/
