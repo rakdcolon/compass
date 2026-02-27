@@ -30,7 +30,7 @@
   <!-- GSAP — animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="stylesheet" href="/static/css/styles.css?v=10" />
 
   <style>
     body { background: #FAFAF9 !important; }
@@ -43,15 +43,6 @@
     /* Hero headline size bump */
     @media (min-width: 640px) { .hero-h1 { font-size: 4rem; } }
     @media (min-width: 768px) { .hero-h1 { font-size: 4.75rem; } }
-
-    /* Impact badge glow */
-    .impact-badge {
-      background: rgba(255,247,237,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(254, 215, 170, 0.8);
-      box-shadow: 0 2px 12px rgba(234,88,12,0.12);
-    }
 
     /* Floating nav glassmorphism */
     .nav-glass {
@@ -69,22 +60,6 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       color: #ea580c;
-    }
-
-    /* Persona card emoji pop */
-    .persona-emoji {
-      display: inline-block;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      font-size: 2.5rem;
-      line-height: 1;
-    }
-    .persona-card:hover .persona-emoji { transform: scale(1.15) rotate(-4deg); }
-
-    /* Language selector polish */
-    #language-select {
-      background: rgba(255,255,255,0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
     }
 
     /* Chat view left panel polish */
@@ -108,21 +83,21 @@
 <body class="min-h-screen text-[#1C1917] font-sans antialiased">
 
   <!-- ===== NAVIGATION ===== -->
-  <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
-    <div class="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="compass-logo-icon w-8 h-8 rounded-lg flex items-center justify-center">
+  <nav class="nav-glass fixed top-0 left-0 right-0 z-50 h-14">
+    <div class="max-w-6xl mx-auto px-5 h-full flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="compass-logo-icon w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
           </svg>
         </div>
-        <span class="font-bold text-lg text-[#1C1917] tracking-tight">Compass</span>
-        <span class="text-xs text-[#78716C] bg-white/70 border border-[#E7E5E4] px-2.5 py-0.5 rounded-full hidden sm:block backdrop-blur">AI Benefits Navigator</span>
-        <span id="demo-badge" class="hidden text-xs text-ember font-semibold bg-ember-50/80 border border-[#FED7AA] px-2 py-0.5 rounded-full backdrop-blur">Demo Mode</span>
+        <span class="font-bold text-base text-[#1C1917] tracking-tight leading-none">Compass</span>
+        <span class="text-[11px] text-[#A8A29E] hidden sm:block leading-none">AI Benefits Navigator</span>
+        <span id="demo-badge" class="hidden text-xs text-ember font-semibold bg-ember-50/80 border border-[#FED7AA] px-2 py-0.5 rounded-full">Demo Mode</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-[#A8A29E]">Powered by</span>
-        <span class="text-xs font-bold" style="background:linear-gradient(90deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Amazon Nova</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-[#C4BDB5]">Powered by</span>
+        <span class="text-[11px] font-bold" style="background:linear-gradient(90deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Amazon Nova</span>
       </div>
     </div>
   </nav>
@@ -152,26 +127,20 @@
     <!-- ===== WELCOME VIEW ===== -->
     <section id="view-welcome" class="min-h-screen flex flex-col relative overflow-hidden">
 
-      <!-- Scattered sparkle decoratives -->
-      <span class="sparkle" style="top:17%;left:5%;font-size:20px;">✦</span>
-      <span class="sparkle" style="top:44%;left:2%;font-size:11px;color:#ea580c;opacity:0.22;animation-delay:1.3s;">✦</span>
-      <span class="sparkle" style="top:72%;left:11%;font-size:14px;animation-delay:0.7s;">+</span>
-      <span class="sparkle" style="top:28%;right:5%;font-size:13px;color:#ea580c;opacity:0.20;animation-delay:2.1s;">✦</span>
-      <span class="sparkle" style="top:82%;right:7%;font-size:17px;animation-delay:0.4s;">✦</span>
-      <span class="sparkle" style="top:60%;right:3%;font-size:10px;animation-delay:1.8s;">+</span>
-      <span class="sparkle" style="top:10%;right:22%;font-size:9px;animation-delay:3s;">✦</span>
+      <!-- Scattered sparkle decoratives (position:absolute inline ensures they never render as flow text) -->
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:17%;left:5%;font-size:20px;">✦</span>
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:44%;left:2%;font-size:11px;color:#ea580c;opacity:0.22;animation-delay:1.3s;">✦</span>
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:72%;left:11%;font-size:14px;animation-delay:0.7s;">+</span>
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:28%;right:5%;font-size:13px;color:#ea580c;opacity:0.20;animation-delay:2.1s;">✦</span>
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:82%;right:7%;font-size:17px;animation-delay:0.4s;">✦</span>
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:60%;right:3%;font-size:10px;animation-delay:1.8s;">+</span>
+      <span aria-hidden="true" class="sparkle" style="position:absolute;top:10%;right:22%;font-size:9px;animation-delay:3s;">✦</span>
 
       <!-- Hero — two column grid -->
       <div class="hero-layout max-w-6xl mx-auto px-6 pt-20 pb-10 w-full">
 
         <!-- LEFT: text content -->
         <div class="hero-left">
-
-          <!-- Impact badge -->
-          <div class="hero-badge impact-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8">
-            <span class="w-2 h-2 rounded-full bg-ember animate-pulse flex-shrink-0"></span>
-            <span class="text-sm text-[#C2410C] font-semibold">$30 billion in benefits go unclaimed every year</span>
-          </div>
 
           <!-- Headline -->
           <h1 class="hero-h1 text-5xl font-extrabold text-[#1C1917] mb-6 leading-[1.06] tracking-tight">
@@ -208,6 +177,7 @@
           <div class="flex flex-wrap items-center gap-3 mb-8">
             <button onclick="App.startVoice()" id="btn-start-voice"
               class="hero-cta-primary flex items-center gap-2.5 px-6 py-3 rounded-full font-bold text-sm text-white"
+              style="background:#15803D;color:white;"
               aria-label="Start voice conversation">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -222,14 +192,27 @@
             </button>
           </div>
 
-          <!-- Language Selector -->
+          <!-- Language Selector — custom dropdown -->
           <div class="flex items-center gap-3 mb-8">
             <span class="text-[#A8A29E] text-sm">Language:</span>
-            <select id="language-select" class="border border-[#E5DDD3] rounded-lg px-3 py-1.5 text-sm text-[#44403C] focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest bg-white" onchange="App.setLanguage(this.value)">
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-            </select>
+            <div class="lang-picker relative" id="lang-picker">
+              <button type="button" onclick="toggleLangPicker()"
+                class="lang-picker-btn flex items-center gap-2 border border-[#E5DDD3] rounded-lg px-3 py-1.5 text-sm text-[#44403C] bg-white hover:border-forest transition-colors">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <span id="lang-picker-label">English</span>
+                <svg id="lang-picker-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition:transform 0.2s;flex-shrink:0;">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </button>
+              <div id="lang-picker-menu" class="hidden absolute top-full mt-1.5 left-0 w-36 bg-white border border-[#E5DDD3] rounded-xl overflow-hidden z-50" style="box-shadow:0 8px 24px rgba(28,25,23,0.10);">
+                <button type="button" onclick="selectLang('en','English')" class="w-full text-left px-4 py-2.5 text-sm text-[#1C1917] hover:bg-[#F5F5F4] font-medium transition-colors">English</button>
+                <button type="button" onclick="selectLang('es','Español')" class="w-full text-left px-4 py-2.5 text-sm text-[#1C1917] hover:bg-[#F5F5F4] transition-colors">Español</button>
+                <button type="button" onclick="selectLang('fr','Français')" class="w-full text-left px-4 py-2.5 text-sm text-[#1C1917] hover:bg-[#F5F5F4] transition-colors">Français</button>
+              </div>
+            </div>
           </div>
 
           <!-- Nova models footer -->
@@ -263,18 +246,29 @@
               <span class="text-white text-[9px] font-bold tracking-[0.15em] uppercase" style="opacity:0.75;">Compass</span>
             </div>
 
-            <!-- Floating stat badges -->
-            <div class="circle-float-badge" style="top:12%;right:-10%;">
-              <div class="text-xs font-extrabold text-forest">26</div>
-              <div class="text-[10px] text-[#A8A29E] leading-tight">programs</div>
+            <!-- Sample result cards — show judges what Compass actually finds -->
+            <div class="src-card" style="top:4%;right:-44%;animation-delay:0s;">
+              <div class="src-label">SNAP Food Benefits</div>
+              <div class="src-value">$847<span class="src-unit">/mo</span></div>
+              <div class="src-badge src-high">
+                <span class="src-dot"></span>High likelihood
+              </div>
             </div>
-            <div class="circle-float-badge" style="bottom:16%;left:-8%;">
-              <div class="text-xs font-extrabold text-ember">Free</div>
-              <div class="text-[10px] text-[#A8A29E] leading-tight">always</div>
+
+            <div class="src-card src-card-amber" style="top:44%;right:-46%;animation-delay:0.4s;">
+              <div class="src-label">EITC Tax Credit</div>
+              <div class="src-value">$3,200<span class="src-unit"> est.</span></div>
+              <div class="src-badge src-medium">
+                <span class="src-dot" style="background:#f59e0b;"></span>Estimated
+              </div>
             </div>
-            <div class="circle-float-badge" style="top:48%;right:-14%;">
-              <div class="text-xs font-extrabold text-[#1C1917]">3</div>
-              <div class="text-[10px] text-[#A8A29E] leading-tight">languages</div>
+
+            <div class="src-card" style="bottom:6%;left:-44%;animation-delay:0.8s;">
+              <div class="src-label">Medicaid</div>
+              <div class="src-value" style="font-size:16px;margin-bottom:5px;">Healthcare<br/>Coverage</div>
+              <div class="src-badge src-high">
+                <span class="src-dot"></span>Eligible
+              </div>
             </div>
 
           </div>
@@ -297,14 +291,21 @@
           <button onclick="App.runDemo('single_parent')" class="persona-card tilt-card group text-left">
             <div class="bar-ember h-1 w-full"></div>
             <div class="p-5">
-              <div class="flex items-start justify-between mb-3">
-                <span class="persona-emoji">👩‍👧‍👦</span>
+              <div class="flex items-start justify-between mb-4">
+                <div class="persona-icon-wrap" style="background:#FFF7ED;border-color:#FDBA74;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
                 <div class="w-6 h-6 rounded-full bg-ember-50 border border-[#FDBA74] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
                   <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#EA580C" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
                 </div>
               </div>
               <span class="font-bold text-sm block text-[#1C1917]">Single Parent</span>
-              <span class="text-xs text-[#78716C] mt-1 block leading-snug">Maria · Lost her job · 2 kids · Oakland CA</span>
+              <span class="text-xs text-[#78716C] mt-1 block leading-snug">Mary · Lost her job · 2 kids · Oakland CA</span>
               <div class="mt-3 pt-2.5 border-t border-[#F0EAE0] flex items-center justify-between">
                 <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
                 <span class="text-sm text-ember font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
@@ -315,8 +316,12 @@
           <button onclick="App.runDemo('senior')" class="persona-card tilt-card group text-left">
             <div class="bar-sky h-1 w-full"></div>
             <div class="p-5">
-              <div class="flex items-start justify-between mb-3">
-                <span class="persona-emoji">👴</span>
+              <div class="flex items-start justify-between mb-4">
+                <div class="persona-icon-wrap" style="background:#F0F9FF;border-color:#7DD3FC;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </div>
                 <div class="w-6 h-6 rounded-full bg-sky-50 border border-[#7DD3FC] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
                   <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#0EA5E9" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
                 </div>
@@ -333,8 +338,12 @@
           <button onclick="App.runDemo('veteran')" class="persona-card tilt-card group text-left">
             <div class="bar-forest h-1 w-full"></div>
             <div class="p-5">
-              <div class="flex items-start justify-between mb-3">
-                <span class="persona-emoji">🎖️</span>
+              <div class="flex items-start justify-between mb-4">
+                <div class="persona-icon-wrap" style="background:#F0FDF4;border-color:#86EFAC;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
                 <div class="w-6 h-6 rounded-full bg-forest-50 border border-[#86EFAC] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
                   <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#15803D" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
                 </div>
@@ -557,9 +566,9 @@
     marked.setOptions({ breaks: true, gfm: true });
   </script>
 
-  <script src="/static/js/api.js?v=9"></script>
-  <script src="/static/js/voice.js?v=9"></script>
-  <script src="/static/js/app.js?v=9"></script>
+  <script src="/static/js/api.js?v=10"></script>
+  <script src="/static/js/voice.js?v=10"></script>
+  <script src="/static/js/app.js?v=10"></script>
 
   <!-- GSAP entrance + card tilt -->
   <script>
@@ -569,8 +578,7 @@
       const welcome = document.getElementById('view-welcome');
       if (welcome && !welcome.classList.contains('hidden')) {
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-        tl.from('.hero-badge',         { y: -20, opacity: 0, duration: 0.5 })
-          .from('.hero-h1',            { y: 32,  opacity: 0, duration: 0.7 }, '-=0.25')
+        tl.from('.hero-h1',            { y: 32,  opacity: 0, duration: 0.7 })
           .from('.hero-p',             { y: 18,  opacity: 0, duration: 0.5 }, '-=0.35')
           .from('.hero-stats-strip > *', { y: 20, opacity: 0, duration: 0.45, stagger: 0.08 }, '-=0.3')
           .from('.hero-cta-primary, .hero-cta-secondary', { y: 16, opacity: 0, duration: 0.4, stagger: 0.1 }, '-=0.2')
@@ -580,6 +588,28 @@
 
       // ── Card tilt effect ─────────────────────────────────────────────────
       initCardTilt();
+    });
+
+    // ── Custom language picker ────────────────────────────────────────────
+    function toggleLangPicker() {
+      const menu = document.getElementById('lang-picker-menu');
+      const chevron = document.getElementById('lang-picker-chevron');
+      const isOpen = !menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', isOpen);
+      chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+    function selectLang(code, label) {
+      document.getElementById('lang-picker-label').textContent = label;
+      document.getElementById('lang-picker-menu').classList.add('hidden');
+      document.getElementById('lang-picker-chevron').style.transform = '';
+      if (typeof App !== 'undefined') App.setLanguage(code);
+    }
+    document.addEventListener('click', e => {
+      const picker = document.getElementById('lang-picker');
+      if (picker && !picker.contains(e.target)) {
+        document.getElementById('lang-picker-menu').classList.add('hidden');
+        document.getElementById('lang-picker-chevron').style.transform = '';
+      }
     });
 
     function initCardTilt() {
