@@ -63,7 +63,7 @@
 .tilt-card {
   transform-style: preserve-3d;
   will-change: transform;
-  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s ease;
+  /* No CSS transition here — JS controls all transitions to prevent conflicts */
 }
 
 /* ============================================================
@@ -104,6 +104,22 @@
   transform: scale(1.06);
 }
 .voice-btn-main:active { transform: scale(0.97); }
+
+/* ============================================================
+   MIC BUTTONS — ID-level specificity ensures gradient shows
+   even when voice.js adds/removes bg-* Tailwind classes.
+   .bg-red-600 selector matches the class voice.js adds for
+   the active-recording state.
+   ============================================================ */
+#btn-mic-chat,
+#btn-voice-bar {
+  background: linear-gradient(145deg, #1a9e4d, #15803D) !important;
+}
+#btn-mic-chat.bg-red-600,
+#btn-voice-bar.bg-red-600 {
+  background: #dc2626 !important;
+  box-shadow: 0 0 12px rgba(220,38,38,0.45);
+}
 
 /* ============================================================
    COMPASS LOGO ICON

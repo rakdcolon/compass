@@ -352,8 +352,7 @@
                   <canvas id="waveform-canvas" class="w-full h-7 rounded mt-1.5 bg-forest/5" width="600" height="28"></canvas>
                 </div>
                 <button onclick="Voice.toggleRecording()" id="btn-mic-chat"
-                  class="w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-sm flex-shrink-0"
-                  style="background:linear-gradient(145deg,#1a9e4d,#15803D);">
+                  class="w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-sm flex-shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -503,8 +502,7 @@
         <span class="text-xs text-[#78716C] font-medium">Compass is ready to help</span>
       </div>
       <button onclick="Voice.toggleRecording()" id="btn-voice-bar"
-        class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm hover:scale-110"
-        style="background:linear-gradient(145deg,#1a9e4d,#15803D);">
+        class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm hover:scale-110">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
           <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -531,9 +529,9 @@
     marked.setOptions({ breaks: true, gfm: true });
   </script>
 
-  <script src="/static/js/api.js?v=7"></script>
-  <script src="/static/js/voice.js?v=7"></script>
-  <script src="/static/js/app.js?v=7"></script>
+  <script src="/static/js/api.js?v=8"></script>
+  <script src="/static/js/voice.js?v=8"></script>
+  <script src="/static/js/app.js?v=8"></script>
 
   <!-- GSAP entrance + Three.js background + card tilt -->
   <script>
@@ -583,25 +581,35 @@
       rimLight.position.set(0, 0, 10);
       scene.add(rimLight);
 
-      // Shapes configuration — forest greens and ember tones, very translucent
+      // ── Themed shapes representing the Compass mission ────────────────────
+      // Compass rings  → navigation / finding your way
+      // Flat cylinders → coins / financial benefits
+      // Thin boxes     → documents / applications / paperwork
+      // Cones          → compass needle / direction / guidance
       const shapeDefs = [
-        // Large background — greens
-        { g: new THREE.IcosahedronGeometry(3.8, 1), c: 0x15803d, o: 0.055, x: -20, y: 9,   z: -10 },
-        { g: new THREE.IcosahedronGeometry(3.0, 1), c: 0x166534, o: 0.065, x:  16, y: -7,  z: -7  },
-        { g: new THREE.SphereGeometry(4.5, 12, 8),  c: 0x22c55e, o: 0.035, x:  -4, y: -15, z: -14 },
-        // Medium — ember/amber
-        { g: new THREE.OctahedronGeometry(2.0, 0),  c: 0xea580c, o: 0.085, x:  13, y: 11,  z: -3  },
-        { g: new THREE.OctahedronGeometry(1.5, 0),  c: 0xfb923c, o: 0.095, x: -15, y: -9,  z: -2  },
-        { g: new THREE.IcosahedronGeometry(1.8, 0), c: 0xf59e0b, o: 0.075, x:   9, y: -13, z: -4  },
-        // Small accents — mixed
-        { g: new THREE.OctahedronGeometry(1.0, 0),  c: 0x15803d, o: 0.115, x:  -9, y: 13,  z:  0  },
-        { g: new THREE.IcosahedronGeometry(0.8, 0), c: 0x86efac, o: 0.140, x:  19, y:  4,  z:  2  },
-        { g: new THREE.OctahedronGeometry(0.7, 0),  c: 0xea580c, o: 0.130, x: -21, y: -2,  z:  3  },
-        { g: new THREE.IcosahedronGeometry(1.1, 0), c: 0x4ade80, o: 0.080, x:   5, y: 15,  z: -1  },
-        { g: new THREE.OctahedronGeometry(0.9, 0),  c: 0xc2410c, o: 0.100, x: -11, y:  1,  z:  2  },
-        { g: new THREE.IcosahedronGeometry(0.6, 0), c: 0xbbf7d0, o: 0.160, x:  21, y: -11, z:  4  },
-        { g: new THREE.OctahedronGeometry(1.2, 0),  c: 0x16a34a, o: 0.090, x:   2, y: -5,  z: -6  },
-        { g: new THREE.IcosahedronGeometry(0.5, 0), c: 0xfcd34d, o: 0.150, x: -6,  y: -18, z:  1  },
+        // COMPASS RINGS — large background anchors, forest green
+        { g: new THREE.TorusGeometry(4.0, 0.28, 10, 40), c: 0x15803d, o: 0.18, x: -19, y:  8, z: -10 },
+        { g: new THREE.TorusGeometry(2.8, 0.22, 10, 36), c: 0x166534, o: 0.22, x:  16, y: -6, z:  -7 },
+        { g: new THREE.TorusGeometry(1.8, 0.16, 10, 32), c: 0x22c55e, o: 0.28, x:  -4, y: 14, z:  -3 },
+        { g: new THREE.TorusGeometry(1.2, 0.12, 10, 28), c: 0x4ade80, o: 0.32, x:   6, y: -5, z:   0 },
+        // Smaller ring accent, ember
+        { g: new THREE.TorusGeometry(0.8, 0.09, 8, 24),  c: 0xea580c, o: 0.30, x:  20, y: -9, z:   4 },
+        { g: new THREE.TorusGeometry(0.6, 0.08, 8, 20),  c: 0xfb923c, o: 0.35, x: -16, y: -2, z:   3 },
+
+        // COMPASS NEEDLES — cones, ember/amber, pointing upward
+        { g: new THREE.ConeGeometry(0.42, 2.4, 7), c: 0xea580c, o: 0.32, x:  14, y: 11, z: -2 },
+        { g: new THREE.ConeGeometry(0.30, 1.8, 7), c: 0xfb923c, o: 0.35, x: -13, y: -9, z: -1 },
+        { g: new THREE.ConeGeometry(0.22, 1.3, 7), c: 0xf59e0b, o: 0.38, x:  -8, y: 13, z:  1 },
+
+        // COINS — flat cylinders, gold tones (represent monetary benefits)
+        { g: new THREE.CylinderGeometry(1.5, 1.5, 0.22, 28), c: 0xf59e0b, o: 0.30, x:  -3, y: -14, z: -5 },
+        { g: new THREE.CylinderGeometry(1.1, 1.1, 0.18, 24), c: 0xfbbf24, o: 0.34, x:  21, y:   3, z:  2 },
+        { g: new THREE.CylinderGeometry(0.7, 0.7, 0.14, 20), c: 0xfcd34d, o: 0.38, x:  -7, y: -18, z:  1 },
+
+        // DOCUMENTS — thin boxes (represent forms, applications, paperwork)
+        { g: new THREE.BoxGeometry(2.4, 3.0, 0.14), c: 0x16a34a, o: 0.24, x:  10, y: -12, z: -6 },
+        { g: new THREE.BoxGeometry(1.7, 2.2, 0.11), c: 0x86efac, o: 0.30, x: -22, y:   1, z:  3 },
+        { g: new THREE.BoxGeometry(1.2, 1.6, 0.09), c: 0xbbf7d0, o: 0.35, x:   4, y:  16, z: -1 },
       ];
 
       const shapes = shapeDefs.map(def => {
@@ -654,16 +662,16 @@
 
     function initCardTilt() {
       document.querySelectorAll('.tilt-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-          card.style.transition = 'transform 0.12s ease, box-shadow 0.25s ease, border-color 0.25s ease';
-        });
         card.addEventListener('mousemove', e => {
+          // Disable transition during tracking so the card follows cursor instantly (no jitter)
+          card.style.transition = 'none';
           const r = card.getBoundingClientRect();
           const x = (e.clientX - r.left  - r.width  / 2) / (r.width  / 2);
           const y = (e.clientY - r.top   - r.height / 2) / (r.height / 2);
           card.style.transform = `perspective(900px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateZ(6px) translateY(-3px)`;
         });
         card.addEventListener('mouseleave', () => {
+          // Re-enable smooth spring-back on leave
           card.style.transition = 'transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease, border-color 0.25s ease';
           card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0) translateY(0)';
         });
