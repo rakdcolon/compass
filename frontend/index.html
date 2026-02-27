@@ -8,7 +8,7 @@
   <!-- Typography: Plus Jakarta Sans — humanist, warm, accessible -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -27,35 +27,115 @@
     }
   </script>
 
-  <!-- GSAP — industry-standard animation library -->
+  <!-- GSAP — animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
+  <!-- Three.js — 3D background -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+
   <link rel="stylesheet" href="/static/css/styles.css" />
+
+  <style>
+    /* Gradient body background — gives depth for the 3D canvas */
+    body { background: linear-gradient(155deg, #eaf5ec 0%, #f9f5ee 42%, #fef3e6 100%) !important; }
+
+    /* Persona card gradient top bars */
+    .bar-ember   { background: linear-gradient(90deg, #ea580c, #f97316); }
+    .bar-sky     { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+    .bar-forest  { background: linear-gradient(90deg, #15803d, #22c55e); }
+
+    /* Hero headline size bump */
+    @media (min-width: 640px) { .hero-h1 { font-size: 4rem; } }
+    @media (min-width: 768px) { .hero-h1 { font-size: 4.75rem; } }
+
+    /* Impact badge glow */
+    .impact-badge {
+      background: rgba(255,247,237,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(254, 215, 170, 0.8);
+      box-shadow: 0 2px 12px rgba(234,88,12,0.12);
+    }
+
+    /* Floating nav glassmorphism */
+    .nav-glass {
+      background: rgba(255,255,255,0.80);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 1px 20px rgba(21,128,61,0.06), 0 1px 4px rgba(28,25,23,0.04);
+    }
+
+    /* Demo divider label */
+    .demo-label {
+      background: linear-gradient(90deg, #ea580c, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: #ea580c;
+    }
+
+    /* Persona card emoji pop */
+    .persona-emoji {
+      display: inline-block;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+    .persona-card:hover .persona-emoji { transform: scale(1.15) rotate(-4deg); }
+
+    /* Language selector polish */
+    #language-select {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Chat view left panel polish */
+    .chat-left-panel {
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(229,221,211,0.8);
+      box-shadow: 0 4px 24px rgba(28,25,23,0.06);
+    }
+
+    /* Nova model footer dots */
+    .nova-footer-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: linear-gradient(135deg, #ea580c, #f97316);
+      display: inline-block;
+      box-shadow: 0 0 6px rgba(234,88,12,0.4);
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-[#F9F5EE] text-[#1C1917] font-sans antialiased">
+<body class="min-h-screen text-[#1C1917] font-sans antialiased">
+
+  <!-- ===== THREE.JS BACKGROUND CANVAS ===== -->
+  <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
 
   <!-- ===== NAVIGATION ===== -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-[#E5DDD3]">
+  <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
     <div class="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-forest flex items-center justify-center shadow-sm">
+        <div class="compass-logo-icon w-8 h-8 rounded-lg flex items-center justify-center">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
           </svg>
         </div>
         <span class="font-bold text-lg text-[#1C1917] tracking-tight">Compass</span>
-        <span class="text-xs text-[#78716C] bg-[#F5F5F4] border border-[#E7E5E4] px-2 py-0.5 rounded-full hidden sm:block">AI Benefits Navigator</span>
-        <span id="demo-badge" class="hidden text-xs text-ember font-medium bg-ember-50 border border-[#FED7AA] px-2 py-0.5 rounded-full">Demo Mode</span>
+        <span class="text-xs text-[#78716C] bg-white/70 border border-[#E7E5E4] px-2.5 py-0.5 rounded-full hidden sm:block backdrop-blur">AI Benefits Navigator</span>
+        <span id="demo-badge" class="hidden text-xs text-ember font-semibold bg-ember-50/80 border border-[#FED7AA] px-2 py-0.5 rounded-full backdrop-blur">Demo Mode</span>
       </div>
       <div class="flex items-center gap-2">
         <span class="text-xs text-[#A8A29E]">Powered by</span>
-        <span class="text-xs font-bold text-ember">Amazon Nova</span>
+        <span class="text-xs font-bold" style="background:linear-gradient(90deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Amazon Nova</span>
       </div>
     </div>
   </nav>
 
   <!-- ===== NOVA MODEL ACTIVITY STRIP (chat view only) ===== -->
-  <div id="model-strip" class="hidden fixed top-14 left-0 right-0 z-40 bg-white border-b border-[#E5DDD3] px-5 py-2">
+  <div id="model-strip" class="hidden fixed top-14 left-0 right-0 z-40 border-b border-[#E5DDD3]/60 px-5 py-2" style="background:rgba(255,255,255,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">
     <div class="max-w-6xl mx-auto flex items-center gap-2.5">
       <span class="text-xs text-[#A8A29E] mr-1 font-medium">Active:</span>
       <button onclick="window.open('https://docs.aws.amazon.com/nova/latest/userguide/what-is-nova.html','_blank')" class="model-pill" id="pill-lite" title="Nova 2 Lite — Multi-agent reasoning & tool use">
@@ -74,132 +154,161 @@
     </div>
   </div>
 
-  <main class="pt-14">
+  <main class="pt-14" style="position:relative;z-index:1;">
 
     <!-- ===== WELCOME VIEW ===== -->
-    <section id="view-welcome" class="min-h-screen bg-[#F9F5EE] flex flex-col">
+    <section id="view-welcome" class="min-h-screen flex flex-col">
 
       <!-- Hero -->
       <div class="max-w-4xl mx-auto px-5 pt-20 pb-16 text-center w-full">
 
         <!-- Impact badge -->
-        <div class="hero-badge inline-flex items-center gap-2 bg-ember-50 border border-[#FED7AA] rounded-full px-4 py-1.5 mb-8">
+        <div class="hero-badge impact-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8">
           <span class="w-2 h-2 rounded-full bg-ember animate-pulse flex-shrink-0"></span>
           <span class="text-sm text-[#C2410C] font-semibold">$30 billion in benefits go unclaimed every year</span>
         </div>
 
         <!-- Headline -->
-        <h1 class="hero-h1 text-5xl sm:text-6xl font-extrabold text-[#1C1917] mb-6 leading-[1.1] tracking-tight">
+        <h1 class="hero-h1 text-5xl font-extrabold text-[#1C1917] mb-6 leading-[1.08] tracking-tight">
           You may be entitled to<br/>
-          <span class="text-forest">more help than you know.</span>
+          <span class="gradient-text">more help than you know.</span>
         </h1>
 
         <!-- Subtext -->
-        <p class="hero-p text-lg text-[#57534E] mb-12 leading-relaxed max-w-2xl mx-auto">
+        <p class="hero-p text-lg text-[#57534E] mb-12 leading-relaxed max-w-2xl mx-auto font-light">
           Compass uses AI to discover government benefits you qualify for —
-          food, healthcare, housing, and more. Conversational. Multilingual. Free.
+          food, healthcare, housing, and more. <strong class="font-semibold text-[#44403C]">Conversational. Multilingual. Free.</strong>
         </p>
 
-        <!-- Stats -->
+        <!-- Stats — glass cards -->
         <div class="hero-stats grid grid-cols-3 gap-4 max-w-xl mx-auto mb-14">
-          <div class="bg-white rounded-2xl p-5 border border-[#E5DDD3] shadow-sm text-center">
-            <div class="text-3xl font-extrabold text-ember mb-1">$30B</div>
-            <div class="text-xs text-[#78716C] leading-snug">In unclaimed benefits yearly</div>
+          <div class="glass-card stat-card-ember rounded-2xl p-5 text-center group hover:scale-105 transition-transform duration-300">
+            <div class="text-[10px] text-[#A8A29E] font-semibold uppercase tracking-widest mb-2">Unclaimed yearly</div>
+            <div class="hero-stat-number text-3xl font-extrabold text-ember mb-1">$30B</div>
+            <div class="text-[10px] text-[#A8A29E] leading-tight">In benefits go unclaimed</div>
           </div>
-          <div class="bg-white rounded-2xl p-5 border border-[#E5DDD3] shadow-sm text-center">
-            <div class="text-3xl font-extrabold text-forest mb-1">7M</div>
-            <div class="text-xs text-[#78716C] leading-snug">Eligible for SNAP, not enrolled</div>
+          <div class="glass-card stat-card-forest rounded-2xl p-5 text-center group hover:scale-105 transition-transform duration-300">
+            <div class="text-[10px] text-[#A8A29E] font-semibold uppercase tracking-widest mb-2">Not enrolled</div>
+            <div class="hero-stat-number text-3xl font-extrabold text-forest mb-1">7M</div>
+            <div class="text-[10px] text-[#A8A29E] leading-tight">SNAP-eligible Americans</div>
           </div>
-          <div class="bg-white rounded-2xl p-5 border border-[#E5DDD3] shadow-sm text-center">
-            <div class="text-3xl font-extrabold text-[#0EA5E9] mb-1">60%</div>
-            <div class="text-xs text-[#78716C] leading-snug">Of seniors miss Medicare savings</div>
+          <div class="glass-card stat-card-sky rounded-2xl p-5 text-center group hover:scale-105 transition-transform duration-300">
+            <div class="text-[10px] text-[#A8A29E] font-semibold uppercase tracking-widest mb-2">Miss savings</div>
+            <div class="hero-stat-number text-3xl font-extrabold text-[#0EA5E9] mb-1">60%</div>
+            <div class="text-[10px] text-[#A8A29E] leading-tight">Of eligible seniors</div>
           </div>
         </div>
 
         <!-- Demo label -->
         <div class="flex items-center gap-4 mb-6 justify-center">
-          <div class="h-px w-16 bg-[#E5DDD3]"></div>
-          <span class="text-xs font-bold text-ember uppercase tracking-widest">Try a live demo</span>
-          <div class="h-px w-16 bg-[#E5DDD3]"></div>
+          <div class="h-px w-16 bg-gradient-to-r from-transparent to-[#E5DDD3]"></div>
+          <span class="text-xs font-bold demo-label uppercase tracking-widest">Try a live demo</span>
+          <div class="h-px w-16 bg-gradient-to-l from-transparent to-[#E5DDD3]"></div>
         </div>
 
-        <!-- Persona Cards -->
+        <!-- Persona Cards — glass + 3D tilt -->
         <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
 
-          <button onclick="App.runDemo('single_parent')" class="persona-card group text-left">
-            <div class="h-1.5 w-full bg-ember-100 rounded-t-2xl"></div>
+          <button onclick="App.runDemo('single_parent')" class="persona-card tilt-card group text-left">
+            <div class="bar-ember h-1 w-full"></div>
             <div class="p-5">
-              <span class="text-4xl mb-3 block">👩‍👧‍👦</span>
+              <div class="flex items-start justify-between mb-3">
+                <span class="persona-emoji">👩‍👧‍👦</span>
+                <div class="w-6 h-6 rounded-full bg-ember-50 border border-[#FDBA74] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
+                  <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#EA580C" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                </div>
+              </div>
               <span class="font-bold text-sm block text-[#1C1917]">Single Parent</span>
               <span class="text-xs text-[#78716C] mt-1 block leading-snug">Maria · Lost her job · 2 kids · Oakland CA</span>
-              <span class="inline-flex items-center gap-1 text-xs text-forest font-semibold mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                See her benefits
-                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-              </span>
+              <div class="mt-3 pt-2.5 border-t border-white/60 flex items-center justify-between">
+                <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
+                <span class="text-sm text-ember font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
+              </div>
             </div>
           </button>
 
-          <button onclick="App.runDemo('senior')" class="persona-card group text-left">
-            <div class="h-1.5 w-full bg-blue-100 rounded-t-2xl"></div>
+          <button onclick="App.runDemo('senior')" class="persona-card tilt-card group text-left">
+            <div class="bar-sky h-1 w-full"></div>
             <div class="p-5">
-              <span class="text-4xl mb-3 block">👴</span>
+              <div class="flex items-start justify-between mb-3">
+                <span class="persona-emoji">👴</span>
+                <div class="w-6 h-6 rounded-full bg-sky-50 border border-[#7DD3FC] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
+                  <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#0EA5E9" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                </div>
+              </div>
               <span class="font-bold text-sm block text-[#1C1917]">Senior Citizen</span>
               <span class="text-xs text-[#78716C] mt-1 block leading-snug">Robert · Retired · SS income · San Antonio TX</span>
-              <span class="inline-flex items-center gap-1 text-xs text-forest font-semibold mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                See his benefits
-                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-              </span>
+              <div class="mt-3 pt-2.5 border-t border-white/60 flex items-center justify-between">
+                <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
+                <span class="text-sm text-[#0EA5E9] font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
+              </div>
             </div>
           </button>
 
-          <button onclick="App.runDemo('veteran')" class="persona-card group text-left">
-            <div class="h-1.5 w-full bg-forest-100 rounded-t-2xl"></div>
+          <button onclick="App.runDemo('veteran')" class="persona-card tilt-card group text-left">
+            <div class="bar-forest h-1 w-full"></div>
             <div class="p-5">
-              <span class="text-4xl mb-3 block">🎖️</span>
+              <div class="flex items-start justify-between mb-3">
+                <span class="persona-emoji">🎖️</span>
+                <div class="w-6 h-6 rounded-full bg-forest-50 border border-[#86EFAC] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
+                  <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#15803D" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                </div>
+              </div>
               <span class="font-bold text-sm block text-[#1C1917]">Veteran</span>
               <span class="text-xs text-[#78716C] mt-1 block leading-snug">James · Service disability · Part-time · Tampa FL</span>
-              <span class="inline-flex items-center gap-1 text-xs text-forest font-semibold mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                See his benefits
-                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-              </span>
+              <div class="mt-3 pt-2.5 border-t border-white/60 flex items-center justify-between">
+                <span class="text-[10px] text-[#A8A29E] font-medium uppercase tracking-wide">Demo</span>
+                <span class="text-sm text-forest font-bold group-hover:translate-x-1 transition-transform inline-block">→</span>
+              </div>
             </div>
           </button>
 
         </div>
 
         <!-- Divider -->
-        <div class="flex items-center gap-4 max-w-xs mx-auto mb-8">
-          <div class="flex-1 h-px bg-[#E5DDD3]"></div>
-          <span class="text-[#A8A29E] text-xs">or your own situation</span>
-          <div class="flex-1 h-px bg-[#E5DDD3]"></div>
+        <div class="flex items-center gap-4 max-w-xs mx-auto mb-10">
+          <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E5DDD3] to-transparent"></div>
+          <span class="text-[#A8A29E] text-xs font-medium">or your own situation</span>
+          <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E5DDD3] to-transparent"></div>
         </div>
 
-        <!-- Voice CTA -->
-        <div class="hero-voice flex flex-col items-center gap-4 mb-8">
-          <div class="relative">
-            <div class="voice-welcome-ring absolute inset-0 rounded-full bg-forest/20"></div>
+        <!-- Voice CTA — multi-ring effect -->
+        <div class="hero-voice flex flex-col items-center gap-5 mb-10">
+          <div class="relative flex items-center justify-center" style="width:260px;height:260px;">
+            <!-- Outermost ring -->
+            <div class="voice-ring voice-ring-3"></div>
+            <!-- Mid ring -->
+            <div class="voice-ring voice-ring-2"></div>
+            <!-- Inner ring -->
+            <div class="voice-ring voice-ring-1"></div>
+            <!-- Main button -->
             <button
               id="btn-start-voice"
               onclick="App.startVoice()"
-              class="relative w-20 h-20 rounded-full bg-forest hover:bg-forest-600 shadow-lg hover:shadow-xl hover:shadow-forest/25 hover:scale-105 transition-all duration-200 flex items-center justify-center"
+              class="voice-btn-main relative w-24 h-24 rounded-full flex items-center justify-center"
+              aria-label="Start voice conversation"
             >
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
               </svg>
             </button>
           </div>
-          <p class="text-[#78716C] text-sm">
-            Speak your situation, or
-            <button onclick="App.startChat()" class="text-forest hover:text-forest-600 font-semibold underline underline-offset-2 transition-colors">type it instead</button>
-          </p>
+          <div class="text-center -mt-4">
+            <p class="text-[#57534E] text-base font-medium">
+              Speak your situation, or
+              <button onclick="App.startChat()" class="text-forest hover:text-forest-600 font-bold underline underline-offset-2 transition-colors">type it instead</button>
+            </p>
+            <p class="text-xs text-[#A8A29E] mt-1.5">Available in English, Español, and Français</p>
+          </div>
         </div>
 
         <!-- Language Selector -->
         <div class="flex items-center justify-center gap-3 mb-10">
           <span class="text-[#A8A29E] text-sm">Language:</span>
-          <select id="language-select" class="bg-white border border-[#E5DDD3] rounded-lg px-3 py-1.5 text-sm text-[#44403C] focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest" onchange="App.setLanguage(this.value)">
+          <select id="language-select" class="border border-[#E5DDD3] rounded-lg px-3 py-1.5 text-sm text-[#44403C] focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest" onchange="App.setLanguage(this.value)">
             <option value="en">English</option>
             <option value="es">Español</option>
             <option value="fr">Français</option>
@@ -208,27 +317,27 @@
 
         <!-- Nova models footer -->
         <div class="flex items-center justify-center gap-6 text-xs text-[#A8A29E]">
-          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ember"></span>Nova 2 Lite</span>
-          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ember"></span>Nova 2 Sonic</span>
-          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ember"></span>Nova Embeddings</span>
-          <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-ember"></span>Nova Act</span>
+          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova 2 Lite</span>
+          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova 2 Sonic</span>
+          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova Embeddings</span>
+          <span class="flex items-center gap-1.5"><span class="nova-footer-dot"></span>Nova Act</span>
         </div>
 
       </div>
     </section>
 
     <!-- ===== CHAT VIEW ===== -->
-    <section id="view-chat" class="hidden min-h-screen bg-[#F9F5EE] pt-[7.5rem] pb-4">
+    <section id="view-chat" class="hidden min-h-screen pt-[7.5rem] pb-4" style="background:rgba(249,245,238,0.96);">
       <div class="max-w-6xl mx-auto px-4 h-[calc(100vh-8rem)]">
         <div class="flex gap-4 h-full">
 
           <!-- Left: Conversation -->
-          <div class="flex-1 flex flex-col bg-white rounded-2xl border border-[#E5DDD3] shadow-sm overflow-hidden">
+          <div class="chat-left-panel flex-1 flex flex-col rounded-2xl overflow-hidden">
 
             <!-- Nova Sonic Voice Panel -->
-            <div id="voice-panel" class="hidden border-b border-[#E5DDD3] bg-forest-50 p-3">
+            <div id="voice-panel" class="hidden border-b border-[#E5DDD3]/70 p-3" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-forest flex items-center justify-center flex-shrink-0 shadow-sm">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm" style="background:linear-gradient(145deg,#1a9e4d,#15803D);">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -243,7 +352,8 @@
                   <canvas id="waveform-canvas" class="w-full h-7 rounded mt-1.5 bg-forest/5" width="600" height="28"></canvas>
                 </div>
                 <button onclick="Voice.toggleRecording()" id="btn-mic-chat"
-                  class="w-9 h-9 rounded-full bg-forest hover:bg-forest-600 flex items-center justify-center transition-colors shadow-sm flex-shrink-0">
+                  class="w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-sm flex-shrink-0"
+                  style="background:linear-gradient(145deg,#1a9e4d,#15803D);">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -258,20 +368,21 @@
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"></div>
 
             <!-- Input -->
-            <div class="border-t border-[#E5DDD3] bg-[#FAFAF9] p-3">
+            <div class="border-t border-[#E5DDD3]/70 bg-[#FAFAF9]/90 p-3">
               <div class="flex gap-2 items-end">
                 <textarea id="chat-input" placeholder="Describe your situation..." rows="2"
-                  class="flex-1 bg-white border border-[#E5DDD3] rounded-xl px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest placeholder-[#A8A29E] text-[#1C1917] transition-colors"
+                  class="flex-1 bg-white/90 border border-[#E5DDD3] rounded-xl px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest placeholder-[#A8A29E] text-[#1C1917] transition-colors"
                   onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.sendMessage();}">
                 </textarea>
                 <div class="flex flex-col gap-1.5">
                   <button onclick="App.sendMessage()"
-                    class="w-10 h-10 rounded-xl bg-forest hover:bg-forest-600 flex items-center justify-center transition-colors shadow-sm">
+                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm hover:scale-105 hover:shadow-md"
+                    style="background:linear-gradient(145deg,#1a9e4d,#15803D);">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                       <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/>
                     </svg>
                   </button>
-                  <label class="w-10 h-10 rounded-xl bg-white border border-[#E5DDD3] hover:border-forest hover:bg-forest-50 flex items-center justify-center transition-colors cursor-pointer" title="Upload document">
+                  <label class="w-10 h-10 rounded-xl bg-white border border-[#E5DDD3] hover:border-forest hover:bg-forest-50 flex items-center justify-center transition-colors cursor-pointer hover:scale-105" title="Upload document">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                       <polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
@@ -284,11 +395,11 @@
               <div class="mt-2 flex items-center gap-3">
                 <span class="text-xs text-[#A8A29E]">Try a sample:</span>
                 <button onclick="App.uploadSample('sample_pay_stub.png')"
-                  class="text-xs text-forest hover:text-forest-600 font-semibold flex items-center gap-1 transition-colors">
+                  class="text-xs text-forest hover:text-forest-600 font-semibold flex items-center gap-1 transition-colors hover:underline">
                   📄 Pay Stub
                 </button>
                 <button onclick="App.uploadSample('sample_utility_bill.png')"
-                  class="text-xs text-forest hover:text-forest-600 font-semibold flex items-center gap-1 transition-colors">
+                  class="text-xs text-forest hover:text-forest-600 font-semibold flex items-center gap-1 transition-colors hover:underline">
                   💡 Utility Bill
                 </button>
               </div>
@@ -306,7 +417,7 @@
             </div>
 
             <!-- Document preview -->
-            <div id="doc-preview-card" class="hidden bg-white border border-[#E5DDD3] rounded-2xl p-4 shadow-sm">
+            <div id="doc-preview-card" class="hidden bg-white/95 border border-[#E5DDD3] rounded-2xl p-4 shadow-sm">
               <h3 class="text-xs font-bold text-[#57534E] mb-2 flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#78716C" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -330,8 +441,8 @@
                 <div class="flex items-center gap-2">
                   <span id="programs-progress" class="text-xs text-[#78716C] font-medium"></span>
                   <button onclick="App.downloadReport()"
-                          class="text-xs text-[#15803D] hover:text-[#166534] font-semibold flex items-center gap-1 transition-colors border border-[#BBF7D0] bg-[#F0FDF4] px-2 py-0.5 rounded-full">
-                    ↓ Save Summary
+                          class="text-xs text-[#15803D] hover:text-[#166534] font-semibold flex items-center gap-1 transition-colors border border-[#BBF7D0] bg-[#F0FDF4] px-2 py-0.5 rounded-full hover:bg-[#DCFCE7]">
+                    ↓ Save
                   </button>
                 </div>
               </div>
@@ -350,7 +461,7 @@
             </div>
 
             <!-- Action Plan -->
-            <div id="action-plan-card" class="hidden bg-forest-50 border border-forest-100 rounded-2xl p-4">
+            <div id="action-plan-card" class="hidden rounded-2xl p-4" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid rgba(167,243,208,0.5);">
               <h3 class="text-xs font-bold text-forest mb-3 flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5">
                   <polyline points="9,11 12,14 22,4"/>
@@ -362,8 +473,8 @@
             </div>
 
             <!-- Placeholder -->
-            <div id="results-placeholder" class="flex flex-col items-center justify-center h-52 text-center bg-white rounded-2xl border border-dashed border-[#D6D3D1] p-6">
-              <div class="w-12 h-12 rounded-full bg-forest-50 flex items-center justify-center mb-3">
+            <div id="results-placeholder" class="flex flex-col items-center justify-center h-52 text-center bg-white/80 backdrop-blur rounded-2xl border border-dashed border-[#D6D3D1] p-6">
+              <div class="w-12 h-12 rounded-full bg-forest-50 flex items-center justify-center mb-3 shadow-sm">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.5">
                   <circle cx="12" cy="12" r="10"/><polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
                 </svg>
@@ -379,7 +490,7 @@
   </main>
 
   <!-- Bottom bar -->
-  <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#E5DDD3] px-5 py-2.5">
+  <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 z-40 px-5 py-2.5" style="background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(229,221,211,0.6);">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <button onclick="App.goHome()" class="text-xs text-[#78716C] hover:text-[#1C1917] flex items-center gap-1.5 font-medium transition-colors">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -388,11 +499,12 @@
         Home
       </button>
       <div class="flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-forest animate-pulse"></div>
+        <div class="w-2 h-2 rounded-full bg-forest animate-pulse" style="box-shadow:0 0 6px rgba(21,128,61,0.5);"></div>
         <span class="text-xs text-[#78716C] font-medium">Compass is ready to help</span>
       </div>
       <button onclick="Voice.toggleRecording()" id="btn-voice-bar"
-        class="w-8 h-8 rounded-full bg-forest hover:bg-forest-600 flex items-center justify-center transition-colors shadow-sm">
+        class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm hover:scale-110"
+        style="background:linear-gradient(145deg,#1a9e4d,#15803D);">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
           <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -402,8 +514,8 @@
   </div>
 
   <!-- Loading overlay -->
-  <div id="loading-overlay" class="hidden fixed inset-0 bg-[#1C1917]/30 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="bg-white border border-[#E5DDD3] rounded-2xl p-8 text-center max-w-xs shadow-xl">
+  <div id="loading-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(28,25,23,0.25);backdrop-filter:blur(6px);">
+    <div class="glass-card rounded-2xl p-8 text-center max-w-xs" style="box-shadow:0 20px 60px rgba(28,25,23,0.15);">
       <div class="w-12 h-12 rounded-full border-2 border-forest border-t-transparent animate-spin mx-auto mb-4"></div>
       <p id="loading-text" class="text-[#1C1917] text-sm font-semibold">Analyzing your situation...</p>
       <p id="loading-model" class="text-xs text-ember mt-1 font-medium">Amazon Nova 2 Lite</p>
@@ -419,24 +531,144 @@
     marked.setOptions({ breaks: true, gfm: true });
   </script>
 
-  <script src="/static/js/api.js?v=6"></script>
-  <script src="/static/js/voice.js?v=6"></script>
-  <script src="/static/js/app.js?v=6"></script>
+  <script src="/static/js/api.js?v=7"></script>
+  <script src="/static/js/voice.js?v=7"></script>
+  <script src="/static/js/app.js?v=7"></script>
 
-  <!-- GSAP welcome page entrance animation -->
+  <!-- GSAP entrance + Three.js background + card tilt -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+
+      // ── GSAP entrance animation ──────────────────────────────────────────
       const welcome = document.getElementById('view-welcome');
       if (welcome && !welcome.classList.contains('hidden')) {
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-        tl.from('.hero-badge',   { y: -18, opacity: 0, duration: 0.5 })
-          .from('.hero-h1',      { y: 28, opacity: 0, duration: 0.65 }, '-=0.25')
-          .from('.hero-p',       { y: 16, opacity: 0, duration: 0.5  }, '-=0.35')
-          .from('.hero-stats',   { y: 20, opacity: 0, duration: 0.55 }, '-=0.3')
-          .from('.persona-card', { y: 28, opacity: 0, duration: 0.45, stagger: 0.1 }, '-=0.2')
-          .from('.hero-voice',   { scale: 0.9, opacity: 0, duration: 0.45 }, '-=0.15');
+        tl.from('.hero-badge',   { y: -20, opacity: 0, duration: 0.5 })
+          .from('.hero-h1',      { y: 32,  opacity: 0, duration: 0.7 }, '-=0.25')
+          .from('.hero-p',       { y: 18,  opacity: 0, duration: 0.5 }, '-=0.35')
+          .from('.hero-stats > *', { y: 24, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.3')
+          .from('.persona-card', { y: 32,  opacity: 0, duration: 0.5, stagger: 0.12 }, '-=0.2')
+          .from('.hero-voice',   { scale: 0.88, opacity: 0, duration: 0.5 }, '-=0.2');
       }
+
+      // ── Three.js 3D background ───────────────────────────────────────────
+      initCompassBackground();
+
+      // ── Card tilt effect ─────────────────────────────────────────────────
+      initCardTilt();
     });
+
+    function initCompassBackground() {
+      if (typeof THREE === 'undefined') return;
+      const canvas = document.getElementById('bg-canvas');
+      if (!canvas) return;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 38;
+
+      // Lighting — warm green key, ember fill
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      const keyLight = new THREE.DirectionalLight(0x4ade80, 1.8);
+      keyLight.position.set(-6, 10, 8);
+      scene.add(keyLight);
+      const fillLight = new THREE.DirectionalLight(0xfb923c, 1.0);
+      fillLight.position.set(8, -4, 6);
+      scene.add(fillLight);
+      const rimLight = new THREE.DirectionalLight(0x86efac, 0.6);
+      rimLight.position.set(0, 0, 10);
+      scene.add(rimLight);
+
+      // Shapes configuration — forest greens and ember tones, very translucent
+      const shapeDefs = [
+        // Large background — greens
+        { g: new THREE.IcosahedronGeometry(3.8, 1), c: 0x15803d, o: 0.055, x: -20, y: 9,   z: -10 },
+        { g: new THREE.IcosahedronGeometry(3.0, 1), c: 0x166534, o: 0.065, x:  16, y: -7,  z: -7  },
+        { g: new THREE.SphereGeometry(4.5, 12, 8),  c: 0x22c55e, o: 0.035, x:  -4, y: -15, z: -14 },
+        // Medium — ember/amber
+        { g: new THREE.OctahedronGeometry(2.0, 0),  c: 0xea580c, o: 0.085, x:  13, y: 11,  z: -3  },
+        { g: new THREE.OctahedronGeometry(1.5, 0),  c: 0xfb923c, o: 0.095, x: -15, y: -9,  z: -2  },
+        { g: new THREE.IcosahedronGeometry(1.8, 0), c: 0xf59e0b, o: 0.075, x:   9, y: -13, z: -4  },
+        // Small accents — mixed
+        { g: new THREE.OctahedronGeometry(1.0, 0),  c: 0x15803d, o: 0.115, x:  -9, y: 13,  z:  0  },
+        { g: new THREE.IcosahedronGeometry(0.8, 0), c: 0x86efac, o: 0.140, x:  19, y:  4,  z:  2  },
+        { g: new THREE.OctahedronGeometry(0.7, 0),  c: 0xea580c, o: 0.130, x: -21, y: -2,  z:  3  },
+        { g: new THREE.IcosahedronGeometry(1.1, 0), c: 0x4ade80, o: 0.080, x:   5, y: 15,  z: -1  },
+        { g: new THREE.OctahedronGeometry(0.9, 0),  c: 0xc2410c, o: 0.100, x: -11, y:  1,  z:  2  },
+        { g: new THREE.IcosahedronGeometry(0.6, 0), c: 0xbbf7d0, o: 0.160, x:  21, y: -11, z:  4  },
+        { g: new THREE.OctahedronGeometry(1.2, 0),  c: 0x16a34a, o: 0.090, x:   2, y: -5,  z: -6  },
+        { g: new THREE.IcosahedronGeometry(0.5, 0), c: 0xfcd34d, o: 0.150, x: -6,  y: -18, z:  1  },
+      ];
+
+      const shapes = shapeDefs.map(def => {
+        const mat = new THREE.MeshPhongMaterial({
+          color: def.c, transparent: true, opacity: def.o, shininess: 70,
+        });
+        const mesh = new THREE.Mesh(def.g, mat);
+        mesh.position.set(def.x, def.y, def.z);
+        mesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
+        mesh.userData = {
+          rs: (Math.random() - 0.5) * 0.005 + 0.0015,   // rotation speed
+          da: 0.6 + Math.random() * 1.4,                 // drift amplitude
+          df: 0.25 + Math.random() * 0.45,               // drift frequency
+          dp: Math.random() * Math.PI * 2,               // drift phase
+          by: def.y,                                     // base Y position
+        };
+        scene.add(mesh);
+        return mesh;
+      });
+
+      // Mouse parallax
+      let mx = 0, my = 0;
+      document.addEventListener('mousemove', e => {
+        mx = (e.clientX / window.innerWidth  - 0.5);
+        my = (e.clientY / window.innerHeight - 0.5);
+      });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      let t = 0;
+      (function animate() {
+        requestAnimationFrame(animate);
+        t += 0.007;
+        shapes.forEach(s => {
+          const u = s.userData;
+          s.rotation.x += u.rs;
+          s.rotation.y += u.rs * 0.62;
+          s.position.y = u.by + Math.sin(t * u.df + u.dp) * u.da;
+        });
+        // Smooth camera parallax
+        camera.position.x += (mx * 5 - camera.position.x) * 0.035;
+        camera.position.y += (-my * 3.5 - camera.position.y) * 0.035;
+        renderer.render(scene, camera);
+      })();
+    }
+
+    function initCardTilt() {
+      document.querySelectorAll('.tilt-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          card.style.transition = 'transform 0.12s ease, box-shadow 0.25s ease, border-color 0.25s ease';
+        });
+        card.addEventListener('mousemove', e => {
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left  - r.width  / 2) / (r.width  / 2);
+          const y = (e.clientY - r.top   - r.height / 2) / (r.height / 2);
+          card.style.transform = `perspective(900px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateZ(6px) translateY(-3px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transition = 'transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease, border-color 0.25s ease';
+          card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0) translateY(0)';
+        });
+      });
+    }
   </script>
 
 </body>
