@@ -188,6 +188,220 @@ def check_benefit_eligibility(
             "Can eliminate Medicare premiums and cost-sharing",
         ))
 
+    # -- SSDI --
+    if "disabled" in special_circumstances and employment_status == "disabled":
+        eligible.append(_build_result(
+            "ssdi",
+            "High",
+            "~$1,537/month average (based on work history)",
+            "Workers with a qualifying disability who paid Social Security taxes may receive SSDI",
+        ))
+    elif "disabled" in special_circumstances:
+        potentially_eligible.append(_build_result(
+            "ssdi",
+            "Medium",
+            "Up to $3,822+/month depending on work history",
+            "If you cannot work due to disability, you may qualify for SSDI based on your work record",
+        ))
+
+    # -- Unemployment Insurance --
+    if employment_status == "unemployed" and annual_income < 80000:
+        eligible.append(_build_result(
+            "unemployment_insurance",
+            "High",
+            "~40-50% of prior wages; average ~$440/week for up to 26 weeks",
+            "Recently unemployed workers may qualify — apply immediately after job loss",
+        ))
+
+    # -- Extra Help (Medicare Part D LIS) --
+    if (age >= 65 or "disabled" in special_circumstances) and income_pct_fpl <= 150:
+        eligible.append(_build_result(
+            "extra_help",
+            "High",
+            "Up to $5,900/year in prescription drug savings",
+            "Medicare beneficiaries with low income can get Extra Help for drug costs",
+        ))
+    elif (age >= 65 or "disabled" in special_circumstances) and income_pct_fpl <= 185:
+        potentially_eligible.append(_build_result(
+            "extra_help",
+            "Medium",
+            "Partial subsidy for prescription drug costs",
+            "Income is near the Extra Help limit — apply to determine exact eligibility",
+        ))
+
+    # -- National School Lunch Program --
+    if household_size >= 2 and income_pct_fpl <= 185:
+        eligible.append(_build_result(
+            "nslp",
+            "High" if income_pct_fpl <= 130 else "Medium",
+            "Free ($3.50/day) or reduced-price ($0.40/day) school lunch per child",
+            "School-age children qualify for free/reduced school meals based on household income",
+        ))
+
+    # -- CCDF (Child Care Subsidy) --
+    has_young_child = "infant_child" in special_circumstances or (household_size >= 2 and age <= 50)
+    if has_young_child and income_pct_fpl <= 200 and employment_status in ("employed", "self_employed", "student"):
+        eligible.append(_build_result(
+            "ccdf",
+            "High" if income_pct_fpl <= 130 else "Medium",
+            "Covers majority of child care costs; subsidy worth $400–$1,200/month",
+            "Working families with children under 13 may qualify for child care assistance",
+        ))
+    elif has_young_child and income_pct_fpl <= 250:
+        potentially_eligible.append(_build_result(
+            "ccdf",
+            "Low",
+            "Partial child care subsidy based on income",
+            "Check your state's CCDF income limit — some states cover higher incomes",
+        ))
+
+    # -- Lifeline Phone/Internet --
+    if income_pct_fpl <= 135:
+        eligible.append(_build_result(
+            "lifeline",
+            "High",
+            "$9.25/month discount on phone or internet (~$111/year)",
+            "Low-income households qualify for a monthly phone or internet discount",
+        ))
+
+    # -- Head Start --
+    if "infant_child" in special_circumstances and income_pct_fpl <= 130:
+        eligible.append(_build_result(
+            "head_start",
+            "High",
+            "Free early childhood education worth $10,000–$20,000/year per child",
+            "Low-income families with children under 5 may enroll in Head Start",
+        ))
+    elif "infant_child" in special_circumstances and income_pct_fpl <= 185:
+        potentially_eligible.append(_build_result(
+            "head_start",
+            "Medium",
+            "Free preschool and family support services",
+            "Some Head Start slots available for slightly higher incomes — contact your local program",
+        ))
+
+    # -- Weatherization Assistance --
+    if income_pct_fpl <= 200:
+        priority = "High" if (age >= 60 or "disabled" in special_circumstances or household_size >= 3) else "Medium"
+        eligible.append(_build_result(
+            "weatherization",
+            priority,
+            "Free home improvements worth $5,000–$6,500; saves ~$283/year on energy bills",
+            "Low-income households qualify for free weatherization to reduce energy costs",
+        ))
+
+    # -- Veterans programs --
+    state_abbr = _get_state_abbr(state)
+    if "veteran" in special_circumstances:
+        if "disabled" in special_circumstances:
+            eligible.append(_build_result(
+                "va_disability",
+                "High",
+                "Tax-free monthly payment; $171–$3,831+/month depending on rating",
+                "Veterans with service-connected disabilities may receive tax-free monthly compensation",
+            ))
+        if (age >= 65 or "disabled" in special_circumstances) and annual_income < 30000:
+            eligible.append(_build_result(
+                "va_pension",
+                "High" if annual_income < 20000 else "Medium",
+                "Up to $1,254/month; up to $3,261/month with Aid & Attendance",
+                "Low-income wartime veterans (65+ or disabled) may qualify for VA Pension",
+            ))
+
+    # -- Emergency Rental Assistance --
+    if "homeless" in special_circumstances or income_pct_fpl <= 80:
+        eligible.append(_build_result(
+            "emergency_rental",
+            "High" if "homeless" in special_circumstances else "Medium",
+            "Up to 12-18 months of rent and utility assistance",
+            "Low-income households facing housing instability may qualify for emergency rental help",
+        ))
+    elif income_pct_fpl <= 120:
+        potentially_eligible.append(_build_result(
+            "emergency_rental",
+            "Low",
+            "Short-term rental assistance if facing eviction risk",
+            "Call 2-1-1 to check local program availability and income limits",
+        ))
+
+    # -- State EITC (multi-state) --
+    STATE_EITC_STATES = {
+        "CA", "CO", "CT", "DC", "DE", "HI", "IA", "IL", "IN", "KS",
+        "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MT", "NE", "NJ",
+        "NM", "NY", "OH", "OK", "OR", "RI", "SC", "TX", "VA", "VT",
+        "WA", "WI",
+    }
+    if (
+        employment_status in ("employed", "self_employed")
+        and state_abbr in STATE_EITC_STATES
+        and income_pct_fpl <= 350
+        and _estimate_eitc(annual_income, household_size) > 0
+        and state_abbr not in ("CA", "NY", "WA")  # handled separately below
+    ):
+        eitc_est = _estimate_eitc(annual_income, household_size)
+        state_pct = {"CO": 25, "CT": 30.5, "DC": 40, "IL": 20, "MA": 30, "MD": 45,
+                     "ME": 25, "MI": 6, "MN": 63, "NJ": 40, "NY": 30, "OR": 9,
+                     "VT": 38, "WI": 4}.get(state_abbr, 15)
+        state_est = int(eitc_est * state_pct / 100)
+        if state_est > 0:
+            potentially_eligible.append(_build_result(
+                "state_eitc",
+                "High",
+                f"~${state_est:,} additional (≈{state_pct}% of federal EITC) at tax time",
+                f"Your state offers a state EITC worth ~{state_pct}% of your federal EITC credit",
+            ))
+
+    # -- California-specific --
+    if state_abbr == "CA":
+        if employment_status in ("employed", "self_employed") and annual_income <= 30931:
+            caleitc_est = _estimate_caleitc(annual_income, household_size)
+            if caleitc_est > 0:
+                eligible.append(_build_result(
+                    "caleitc",
+                    "High",
+                    f"Up to ${caleitc_est:,} at tax time (CalEITC + Young Child Tax Credit if applicable)",
+                    "California workers with low income qualify for CalEITC — ITIN filers also qualify",
+                ))
+        if "disabled" in special_circumstances or "pregnant" in special_circumstances:
+            eligible.append(_build_result(
+                "ca_sdi",
+                "High",
+                "60-70% of weekly wages; up to ~$1,620/week for up to 52 weeks",
+                "California workers unable to work due to disability or pregnancy qualify for SDI",
+            ))
+        elif household_size >= 2:
+            potentially_eligible.append(_build_result(
+                "ca_sdi",
+                "Medium",
+                "8 weeks at 60-70% of wages for bonding with a new child",
+                "California Paid Family Leave covers bonding with a new baby or caring for a family member",
+            ))
+
+    # -- New York-specific --
+    if state_abbr == "NY" and employment_status in ("employed", "self_employed"):
+        eitc_est = _estimate_eitc(annual_income, household_size)
+        ny_est = int(eitc_est * 0.30)
+        if ny_est > 0:
+            eligible.append(_build_result(
+                "ny_eitc",
+                "High",
+                f"~${ny_est:,} state credit (30% of federal EITC) + additional 5% for NYC residents",
+                "New York State offers one of the most generous state EITCs at 30% of the federal credit",
+            ))
+
+    # -- Washington-specific --
+    if state_abbr == "WA" and employment_status in ("employed", "self_employed"):
+        eitc_est = _estimate_eitc(annual_income, household_size)
+        if eitc_est > 0:
+            children = max(0, min(household_size - 1, 3))
+            wa_est = {0: 315, 1: 630, 2: 940, 3: 1255}.get(min(children, 3), 1255)
+            eligible.append(_build_result(
+                "wa_wftc",
+                "High",
+                f"${wa_est}/year Working Families Tax Credit",
+                "Washington State's Working Families Tax Credit — ITIN filers also qualify",
+            ))
+
     # Build summary
     total_est_monthly = _total_monthly_estimate(eligible)
 
@@ -272,6 +486,47 @@ def _total_monthly_estimate(eligible: list) -> int:
                 except ValueError:
                     pass
     return total
+
+
+def _get_state_abbr(state: str) -> str:
+    """Convert a state name or abbreviation to a 2-letter abbreviation."""
+    name_to_abbr = {
+        "ALABAMA": "AL", "ALASKA": "AK", "ARIZONA": "AZ", "ARKANSAS": "AR",
+        "CALIFORNIA": "CA", "COLORADO": "CO", "CONNECTICUT": "CT", "DELAWARE": "DE",
+        "FLORIDA": "FL", "GEORGIA": "GA", "HAWAII": "HI", "IDAHO": "ID",
+        "ILLINOIS": "IL", "INDIANA": "IN", "IOWA": "IA", "KANSAS": "KS",
+        "KENTUCKY": "KY", "LOUISIANA": "LA", "MAINE": "ME", "MARYLAND": "MD",
+        "MASSACHUSETTS": "MA", "MICHIGAN": "MI", "MINNESOTA": "MN", "MISSISSIPPI": "MS",
+        "MISSOURI": "MO", "MONTANA": "MT", "NEBRASKA": "NE", "NEVADA": "NV",
+        "NEW HAMPSHIRE": "NH", "NEW JERSEY": "NJ", "NEW MEXICO": "NM", "NEW YORK": "NY",
+        "NORTH CAROLINA": "NC", "NORTH DAKOTA": "ND", "OHIO": "OH", "OKLAHOMA": "OK",
+        "OREGON": "OR", "PENNSYLVANIA": "PA", "RHODE ISLAND": "RI", "SOUTH CAROLINA": "SC",
+        "SOUTH DAKOTA": "SD", "TENNESSEE": "TN", "TEXAS": "TX", "UTAH": "UT",
+        "VERMONT": "VT", "VIRGINIA": "VA", "WASHINGTON": "WA", "WEST VIRGINIA": "WV",
+        "WISCONSIN": "WI", "WYOMING": "WY", "DISTRICT OF COLUMBIA": "DC",
+    }
+    s = state.upper().strip()
+    return name_to_abbr.get(s, s[:2] if len(s) > 2 else s)
+
+
+def _estimate_caleitc(annual_income: float, household_size: int) -> int:
+    """Estimate California CalEITC + Young Child Tax Credit (2023 tax year)."""
+    children = max(0, min(household_size - 1, 3))
+    # CalEITC max credits by number of children (2023)
+    max_credits = {0: 255, 1: 1700, 2: 2816, 3: 3529}
+    max_credit = max_credits.get(children, 3529)
+    # Very rough phase-in/phase-out
+    if annual_income < 8000:
+        caleitc = int(max_credit * 0.7)
+    elif annual_income < 20000:
+        caleitc = max_credit
+    elif annual_income < 28000:
+        caleitc = int(max_credit * 0.6)
+    else:
+        caleitc = int(max_credit * 0.3)
+    # Add Young Child Tax Credit ($1,117 per child under 6 — we can't know exact age, so estimate 1 young child)
+    yctc = 1117 if children >= 1 else 0
+    return caleitc + yctc
 
 
 def _is_medicaid_expansion_state(state: str) -> bool:
