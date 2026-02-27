@@ -8,12 +8,10 @@ real credentials are required in CI.
 
 import os
 import sys
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-import pytest_asyncio
 
 # Ensure compass/ root is on sys.path so `backend.*` imports resolve
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -31,7 +29,7 @@ os.environ.setdefault("NOVA_ACT_ENABLED", "false")
 # Fixtures
 # ---------------------------------------------------------------------------
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def client(tmp_path):
     """
     Async HTTPX test client for the FastAPI app.
@@ -39,8 +37,9 @@ async def client(tmp_path):
     - All boto3 calls are mocked so no AWS credentials are needed.
     - Uses a per-test SQLite file in a temp directory.
     - Nova Act is disabled via env var.
+    - Manually initializes the orchestrator (httpx ASGITransport does not
+      trigger FastAPI lifespan events, so we replicate what lifespan does).
     """
-    # Point DB at a temp file for this test
     db_file = str(tmp_path / "test_compass.db")
     os.environ["COMPASS_DB_PATH"] = db_file
 
@@ -60,14 +59,24 @@ async def client(tmp_path):
             {"messageStop": {"stopReason": "end_turn"}},
         ]
     }
-    # embed_text — return a list of 1024 floats
+    # invoke_model for embeddings — return a list of 1024 floats
     mock_boto3_client.invoke_model.return_value = {
         "body": MagicMock(read=MagicMock(return_value=b'{"embedding": [0.0] * 1024}'))
     }
 
     with patch("boto3.client", return_value=mock_boto3_client):
         import httpx
+        import backend.main as main_module
+        from backend.agents.orchestrator import CompassOrchestrator
+        from backend.database import SessionStore
         from backend.main import app
+
+        # httpx ASGITransport does not fire FastAPI lifespan events, so we
+        # replicate what the lifespan would do: init DB + create orchestrator.
+        store = SessionStore()
+        await store.init_db()
+        main_module.session_store = store
+        main_module.orchestrator = CompassOrchestrator(store=store)
 
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"

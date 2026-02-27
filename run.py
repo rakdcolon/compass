@@ -95,8 +95,8 @@ GET  /api/session/{id}  - Get session state
 
 def main():
     parser = argparse.ArgumentParser(description="Compass AI Benefits Navigator")
-    parser.add_argument("--port", type=int, default=8000, help="Server port (default: 8000)")
-    parser.add_argument("--host", default="0.0.0.0", help="Server host (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", 8000)), help="Server port (default: 8000)")
+    parser.add_argument("--host", default=os.getenv("HOST", "0.0.0.0"), help="Server host (default: 0.0.0.0)")
     parser.add_argument("--demo", action="store_true", help="Print demo instructions")
     parser.add_argument("--reload", action="store_true", help="Enable hot reload (development)")
     args = parser.parse_args()

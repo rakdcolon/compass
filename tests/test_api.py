@@ -6,10 +6,6 @@ Uses httpx.AsyncClient with ASGI transport.
 """
 
 import pytest
-import pytest_asyncio
-
-
-pytestmark = pytest.mark.asyncio
 
 
 class TestHealth:
@@ -18,8 +14,8 @@ class TestHealth:
         assert resp.status_code == 200
 
     async def test_health_contains_service_name(self, client):
-        data = resp = await client.get("/health")
-        body = data.json()
+        resp = await client.get("/health")
+        body = resp.json()
         assert "status" in body
 
     async def test_api_health_alias(self, client):
